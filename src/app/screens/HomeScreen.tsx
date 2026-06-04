@@ -481,6 +481,44 @@ export default function HomeScreen({
     if (videoRef.current) videoRef.current.volume = volume / 100
   }, [volume])
 
+  /* ── Audio fade-in when carousel changes ── */
+  useEffect(() => {
+    const vid = videoRef.current
+    if (!vid) return
+    const target = volume / 100
+    vid.volume = 0
+
+    let rafId: number
+    const FADE_IN_MS = 1200
+    const start = performance.now()
+
+    const fadeIn = (now: number) => {
+      const t = Math.min((now - start) / FADE_IN_MS, 1)
+      if (videoRef.current === vid) vid.volume = t * target
+      if (t < 1) rafId = requestAnimationFrame(fadeIn)
+    }
+    rafId = requestAnimationFrame(fadeIn)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      // fade out the departing video
+      const departing = vid
+      const fromVol   = departing.volume
+      const FADE_OUT_MS = 450
+      const t0 = performance.now()
+      let outId: number
+      const fadeOut = (now: number) => {
+        const p = Math.min((now - t0) / FADE_OUT_MS, 1)
+        departing.volume = fromVol * (1 - p)
+        if (p < 1) outId = requestAnimationFrame(fadeOut)
+      }
+      outId = requestAnimationFrame(fadeOut)
+      // stop the RAF after fade-out completes (cleanup reference)
+      setTimeout(() => cancelAnimationFrame(outId), FADE_OUT_MS + 100)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carousel])
+
   /* Focus flags */
   const continueFocused = zone === 'hero' && heroNode === 'continue'
   const netflixFocused  = zone === 'hero' && heroNode === 'netflix'
@@ -499,7 +537,7 @@ export default function HomeScreen({
         <motion.video
           key={HERO_SLIDES[carousel].src}
           ref={videoRef}
-          autoPlay loop muted playsInline
+          autoPlay loop playsInline
           initial={{ opacity: 0, scale: 1.015 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.015 }}
