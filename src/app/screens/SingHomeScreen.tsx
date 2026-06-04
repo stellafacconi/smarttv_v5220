@@ -183,17 +183,17 @@ const SONG_LIST = [
 ] as const
 type SongEntry = typeof SONG_LIST[number]
 
-type ItunesTrack = { artwork: string | null; previewUrl: string | null; trackName: string | null; artistName: string | null }
+type ItunesTrack = { artwork: string | null; previewUrl: string | null; trackName: string | null; artistName: string | null; trackTimeSec: number | null }
 
 function useItunesData(songs: readonly SongEntry[]) {
-  const [data, setData] = useState<ItunesTrack[]>(() => songs.map(() => ({ artwork: null, previewUrl: null, trackName: null, artistName: null })))
+  const [data, setData] = useState<ItunesTrack[]>(() => songs.map(() => ({ artwork: null, previewUrl: null, trackName: null, artistName: null, trackTimeSec: null })))
   useEffect(() => {
     songs.forEach(async (song, i) => {
       try {
         const q = encodeURIComponent(`${song.title} ${song.artist}`)
         const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=10&country=us`)
         const d = await r.json()
-        const results: Array<{ trackName: string; artistName: string; artworkUrl100: string; previewUrl: string }> = d.results ?? []
+        const results: Array<{ trackName: string; artistName: string; artworkUrl100: string; previewUrl: string; trackTimeMillis: number }> = d.results ?? []
         const tl = song.title.toLowerCase()
         const al = song.artist.toLowerCase()
         // best match: exact title + artist; fallback: title only; then first result
@@ -209,6 +209,7 @@ function useItunesData(songs: readonly SongEntry[]) {
               previewUrl: best.previewUrl ?? null,
               trackName: best.trackName ?? null,
               artistName: best.artistName ?? null,
+              trackTimeSec: best.trackTimeMillis ? best.trackTimeMillis / 1000 : null,
             }
             return n
           })
@@ -218,6 +219,36 @@ function useItunesData(songs: readonly SongEntry[]) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return data
+}
+
+// Fetch iTunes data for a single song (used when song comes from PartyScreen)
+function useItunesSingle(title: string, artist: string) {
+  const [track, setTrack] = useState<ItunesTrack>({ artwork: null, previewUrl: null, trackName: null, artistName: null, trackTimeSec: null })
+  useEffect(() => {
+    if (!title) return
+    setTrack({ artwork: null, previewUrl: null, trackName: null, artistName: null, trackTimeSec: null })
+    const q = encodeURIComponent(`${title} ${artist}`)
+    fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=10&country=us`)
+      .then(r => r.json())
+      .then(d => {
+        const results: Array<{ trackName: string; artistName: string; artworkUrl100: string; previewUrl: string; trackTimeMillis: number }> = d.results ?? []
+        const tl = title.toLowerCase()
+        const al = artist.toLowerCase()
+        const best =
+          results.find(r => r.trackName?.toLowerCase() === tl && r.artistName?.toLowerCase().includes(al.split(' ')[0])) ??
+          results.find(r => r.trackName?.toLowerCase().includes(tl)) ??
+          results[0]
+        if (best) setTrack({
+          artwork: best.artworkUrl100?.replace('100x100bb', '400x400bb') ?? null,
+          previewUrl: best.previewUrl ?? null,
+          trackName: best.trackName ?? null,
+          artistName: best.artistName ?? null,
+          trackTimeSec: best.trackTimeMillis ? best.trackTimeMillis / 1000 : null,
+        })
+      })
+      .catch(() => {})
+  }, [title, artist])
+  return track
 }
 
 function useLrclib(title: string, artist: string) {
@@ -361,6 +392,7 @@ interface SingHomeProps {
   groupName?: string
   onBack: () => void
   initialStep?: SingHomeEntry
+  song?: { title: string; artist: string }   // pre-selected song from PartyScreen
 }
 
 function useMultiUserTouch(
@@ -3679,14 +3711,19 @@ function FinishedScreen({ onTryAgain, onNext }: {
 }
 
 /* ─── Main SingHomeScreen ────────────────────────────────── */
-export default function SingHomeScreen({ members, groupName, onBack, initialStep = 'browser' }: SingHomeProps) {
+export default function SingHomeScreen({ members, groupName, onBack, initialStep = 'browser', song }: SingHomeProps) {
   const startsWithSingingGuidance = initialStep === 'singing-guide'
   const [step, setStep] = useState<SingStep>(initialStep === 'browser-guide' ? 'guide' : startsWithSingingGuidance ? 'singing' : 'browser')
   const [scale, setScale] = useState(1)
   const [selectedSongIdx, setSelectedSongIdx] = useState(0)
-  const itunesData   = useItunesData(SONG_LIST)
-  const currentTrack = itunesData[selectedSongIdx]
-  const lyricLines   = useLrclib(SONG_LIST[selectedSongIdx].title, SONG_LIST[selectedSongIdx].artist)
+
+  // If a song was passed in from PartyScreen, use it directly; otherwise use SONG_LIST selection
+  const activeSong = song ?? SONG_LIST[selectedSongIdx]
+
+  const itunesData      = useItunesData(SONG_LIST)
+  const singleTrack     = useItunesSingle(song?.title ?? '', song?.artist ?? '')
+  const currentTrack    = song ? singleTrack : itunesData[selectedSongIdx]
+  const lyricLines      = useLrclib(activeSong.title, activeSong.artist)
 
   useEffect(() => {
     const update = () => setScale(Math.min(window.innerWidth / 1920, window.innerHeight / 1080))
@@ -3749,8 +3786,8 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
             showGuidanceInitially={startsWithSingingGuidance}
             lyricLines={lyricLines}
             previewUrl={currentTrack?.previewUrl}
-            songTitle={SONG_LIST[selectedSongIdx].title}
-            songArtist={SONG_LIST[selectedSongIdx].artist}
+            songTitle={activeSong.title}
+            songArtist={activeSong.artist}
             artworkUrl={currentTrack?.artwork}
           />
         )}
