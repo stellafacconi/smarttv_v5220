@@ -657,7 +657,7 @@ function BottomBar({ showTime, isPlaying, isListOpen, onListClick }: {
         <div style={{ display: 'flex', alignItems: 'center', width: 371 }}>
           <div style={{ display: 'flex', gap: 33, alignItems: 'center' }}>
             <motion.button
-              whileTap={onListClick ? { scale: 0.92 } : undefined}
+
               onClick={onListClick}
               style={{
                 width: isListOpen ? 70 : 45,
@@ -736,7 +736,7 @@ function SingMemojiGroupPill({ m0, m1, m2, activePlayer, onClick }: {
 
   return (
     <motion.div
-      whileTap={{ scale: onClick ? 0.94 : 1 }}
+
       onClick={onClick}
       style={{
         display: 'flex',
@@ -871,7 +871,7 @@ function EmojiArcPicker({ onSelect, left = 918, top = 787, player = 1 }: { onSel
     <motion.div
       key={emoji}
       whileHover={{ scale: 1.08 }}
-      whileTap={{ scale: 0.9 }}
+
       onClick={() => onSelect(emoji)}
       style={{
         position: 'absolute',
@@ -949,7 +949,7 @@ function EmojiArcPicker({ onSelect, left = 918, top = 787, player = 1 }: { onSel
 function SearchBar({ onClick }: { onClick?: () => void }) {
   return (
     <motion.div
-      whileTap={{ scale: 0.96 }}
+
       onClick={onClick}
       style={{
         position: 'absolute',
@@ -1046,7 +1046,7 @@ function SingModeTopBar({
       }}
     >
       <motion.div
-        whileTap={{ scale: 0.95 }}
+
         onMouseEnter={() => onFocusMode('sing')}
         onClick={onStaySing}
         style={itemStyle('sing')}
@@ -1062,7 +1062,7 @@ function SingModeTopBar({
         <span style={textStyle('sing')}>Sing now</span>
       </motion.div>
       <motion.div
-        whileTap={{ scale: 0.95 }}
+
         onMouseEnter={() => onFocusMode('browser')}
         onClick={onBrowser}
         style={itemStyle('browser')}
@@ -1421,7 +1421,7 @@ function GuideScreen({ onContinue }: { onContinue: () => void }) {
       </div>
 
       <motion.button
-        whileTap={{ scale: 0.94 }}
+
         onClick={() => setConfirmed([true, true, true])}
         style={{
           position: 'absolute',
@@ -1534,7 +1534,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
 
       {/* Back button */}
       <motion.button
-        whileTap={{ scale: 0.88 }}
+
         onClick={onBack}
         style={{
           position: 'absolute',
@@ -1604,7 +1604,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
           {(['ABC','abc','.,#'] as const).map(tab => (
             <motion.button
               key={tab}
-              whileTap={{ scale: 0.94 }}
+
               onClick={() => setActiveKbTab(tab)}
               style={{
                 padding: '8px 20px',
@@ -1630,7 +1630,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
               {row.map(ch => (
                 <motion.button
                   key={ch}
-                  whileTap={{ scale: 0.88 }}
+
                   style={{
                     width: 54, height: 54,
                     borderRadius: 10,
@@ -1649,7 +1649,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
           ))}
           {/* Space bar */}
           <motion.button
-            whileTap={{ scale: 0.96 }}
+
             style={{
               width: '100%', height: 54,
               borderRadius: 10,
@@ -1678,7 +1678,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
         <motion.div
           key={i}
           whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.96 }}
+
           onClick={onSingNow}
           style={{
             position: 'absolute',
@@ -1733,7 +1733,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
           <motion.div
             key={i}
             whileHover={{ background: 'rgba(255,255,255,0.06)' }}
-            whileTap={{ scale: 0.98 }}
+
             onClick={onSingNow}
             style={{
               display: 'flex', alignItems: 'center', gap: 20,
@@ -1844,7 +1844,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
           style={{ width: 2, height: 26, background: '#fff', borderRadius: 1 }}
         />
         <motion.div
-          whileTap={{ scale: 0.92 }}
+
           style={{
             position: 'absolute',
             left: 375,
@@ -1885,7 +1885,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
         {carouselCards.map((card, i) => (
           <div key={i} style={{ position: 'relative', flexShrink: 0 }}>
             <motion.div
-              whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.06 }}
               onClick={onSingNow}
               style={{
                 width: 110, height: 110,
@@ -1954,7 +1954,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
             {row.map(ch => (
               <motion.button
                 key={ch}
-                whileTap={{ scale: 0.85 }}
+
                 style={{
                   width: ri === 0 ? 43 : ri === 1 ? 46 : 54,
                   height: 46,
@@ -1975,7 +1975,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
         {/* Space bar */}
         <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
           <motion.button
-            whileTap={{ scale: 0.96 }}
+
             style={{
               width: 200, height: 46,
               borderRadius: 8,
@@ -2048,7 +2048,7 @@ function MusicCardActionButton({
   const isAdd = mode === 'add'
   return (
     <motion.button
-      whileTap={{ scale: 0.94 }}
+
       onClick={(e) => {
         e.stopPropagation()
         onClick()
@@ -2275,7 +2275,7 @@ function BrowserScreen({ onSingNow, onBack, onSearch, songs, artworks }: {
 
       {/* Back button */}
       <motion.button
-        whileTap={{ scale: 0.88 }}
+
         onClick={onBack}
         style={{
           position: 'absolute',
@@ -2374,7 +2374,7 @@ function BrowserScreen({ onSingNow, onBack, onSearch, songs, artworks }: {
         <motion.div
           key={i}
           whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.97 }}
+
           onClick={() => {
             setSelectedCard(i)
             setCardActionMode('add')
@@ -2400,7 +2400,7 @@ function BrowserScreen({ onSingNow, onBack, onSearch, songs, artworks }: {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 0.88, scale: 1 }}
           whileHover={{ scale: 1.04, opacity: 1 }}
-          whileTap={{ scale: 0.97 }}
+
           onClick={() => {
             setSelectedCard(albumIndex)
             setCardActionMode('add')
@@ -2752,7 +2752,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
         zIndex: 2,
       }}>
         <motion.button
-          whileTap={{ scale: 0.92 }}
+
           onClick={onSearch}
           style={{
             width: 51,
@@ -2833,7 +2833,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
             <motion.div
               key={row.title}
               whileHover={{ background: 'rgba(255,255,255,0.06)' }}
-              whileTap={{ scale: 0.985 }}
+
               onClick={onSongClick}
               style={{
                 height: 82,
@@ -2891,7 +2891,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
                 marginLeft: 'auto',
               }}>
                 <motion.button
-                  whileTap={{ scale: 0.9 }}
+
                   onClick={(e) => {
                     e.stopPropagation()
                     onMoveSong(index, 'up')
@@ -2909,7 +2909,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
                   {SF.listHead}
                 </motion.button>
                 <motion.button
-                  whileTap={{ scale: 0.9 }}
+
                   onClick={(e) => {
                     e.stopPropagation()
                     onMoveSong(index, 'down')
@@ -2977,13 +2977,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
   const [browserLyricsMode, setBrowserLyricsMode] = useState(false)
   const [showGuidance, setShowGuidance] = useState(showGuidanceInitially)
 
-  // If guide was showing on mount, pause audio immediately and play only when guide is dismissed
-  useEffect(() => {
-    if (!showGuidanceInitially) return
-    const audio = audioRef.current
-    if (audio) { audio.pause(); audio.currentTime = 0 }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Play audio when guide is dismissed (autoPlay was disabled while guide was showing)
   useEffect(() => {
     if (!waitingForGuideRef.current) return
     if (!showGuidance) {
@@ -3256,17 +3250,19 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
       }}
       style={{ position: 'absolute', inset: 0 }}
     >
-      {/* Audio: use video file (with its audio track) if available, else fall back to iTunes 30s preview */}
+      {/* Audio: use video file (with its audio track) if available, else fall back to iTunes 30s preview.
+          autoPlay is disabled when guide is showing initially — we play manually when guide is dismissed. */}
       {videoSrc
         ? <video
             ref={el => { audioRef.current = el }}
-            src={videoSrc} autoPlay loop playsInline
+            src={videoSrc} autoPlay={!showGuidanceInitially} loop playsInline
             aria-hidden="true" preload="auto"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
           />
         : <audio
             ref={el => { audioRef.current = el }}
-            src={previewUrl ?? undefined} aria-hidden="true" preload="auto" autoPlay loop style={{ display: 'none' }}
+            src={previewUrl ?? undefined} aria-hidden="true" preload="auto"
+            autoPlay={!showGuidanceInitially} loop style={{ display: 'none' }}
           />
       }
 
@@ -3381,7 +3377,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
             {[bRect5, bMusicCard1, bMusicCard2, bMusicCard3, bMusicCard4, bMusicCard5].map((card, i) => (
               <motion.div
                 key={card}
-                whileTap={{ scale: 0.96 }}
+
                 style={{
                   width: 240,
                   height: 240,
@@ -3701,7 +3697,7 @@ function FinishedScreen({ onTryAgain, onNext }: {
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: 20, height: 53, alignItems: 'flex-start', justifyContent: 'center', width: 565 }}>
             <motion.button
-              whileTap={{ scale: 0.95 }}
+
               onClick={onTryAgain}
               style={{
                 flex: '1 0 0',
@@ -3718,7 +3714,7 @@ function FinishedScreen({ onTryAgain, onNext }: {
               <span style={{ fontFamily: sfPro, fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.9)', lineHeight: '28px', letterSpacing: '-0.26px', whiteSpace: 'nowrap' }}>Try again</span>
             </motion.button>
             <motion.button
-              whileTap={{ scale: 0.95 }}
+
               style={{
                 height: 53,
                 backdropFilter: 'blur(67.955px)',
@@ -3734,7 +3730,7 @@ function FinishedScreen({ onTryAgain, onNext }: {
               <span style={{ fontFamily: sfPro, fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.9)', lineHeight: '28px', letterSpacing: '-0.26px', whiteSpace: 'nowrap' }}>Save the memory</span>
             </motion.button>
             <motion.button
-              whileTap={{ scale: 0.95 }}
+
               onClick={onNext}
               style={{
                 height: 53,

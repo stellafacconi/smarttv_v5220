@@ -211,7 +211,7 @@ function CreateTypeOption({
         scale: focused ? 1.02 : 1,
         filter: focused ? 'drop-shadow(0px 0px 24px rgba(255,255,255,0.22))' : 'drop-shadow(0px 0px 0px rgba(255,255,255,0))',
       }}
-      whileTap={{ scale: 0.95 }}
+
       transition={{ duration: 0.18, ease: [0.34, 1.2, 0.64, 1] }}
       onMouseEnter={onFocus}
       onClick={onSelect}
