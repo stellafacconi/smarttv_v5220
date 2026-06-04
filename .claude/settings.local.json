@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__044351dc-73f3-400b-8dfb-d8ca476e7d28__get_metadata",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); text=data[0]['text']; lines=[l for l in text.split\\('\\\\n'\\) if 'PARTY' in l.upper\\(\\) or 'HOME' in l.upper\\(\\) or 'party' in l.lower\\(\\)]; print\\('\\\\n'.join\\(lines[:80]\\)\\)\")",
+      "mcp__044351dc-73f3-400b-8dfb-d8ca476e7d28__get_screenshot",
+      "Bash(curl -s -o /tmp/party_home_full.png \"https://www.figma.com/api/mcp/asset/ed355b72-82f8-4fab-bcbd-103df950ae83\")",
+      "Bash(curl -s -o /tmp/party_home_screen.png \"https://www.figma.com/api/mcp/asset/9ee449bc-71f4-4523-9bca-aca6ae2d1a45\")",
+      "Bash(curl -s -o /tmp/party_sing.png \"https://www.figma.com/api/mcp/asset/4c304d19-0c7b-4a23-bc73-6cc500ac616c\")",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); print\\(data[0]['text']\\)\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npm run *)",
+      "Bash(pnpm run *)",
+      "Bash(curl -s http://localhost:5199)",
+      "Bash(npx vite *)",
+      "Bash(npx tsc *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(npm install *)",
+      "mcp__044351dc-73f3-400b-8dfb-d8ca476e7d28__use_figma",
+      "mcp__044351dc-73f3-400b-8dfb-d8ca476e7d28__get_design_context",
+      "Bash(node_modules/.bin/vite build *)"
+    ]
+  }
+}
