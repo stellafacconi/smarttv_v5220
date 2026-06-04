@@ -62,6 +62,7 @@ export default function App() {
     setActiveGroupId(p.id)
     setGroupName(p.name)
     setIsNewGroup(false)   // existing group → skip intro
+    setPartyBackTarget('HOME')
     setScreen('PARTY')
   }
 
