@@ -185,6 +185,33 @@ type SongEntry = typeof SONG_LIST[number]
 
 type ItunesTrack = { artwork: string | null; previewUrl: string | null; trackName: string | null; artistName: string | null; trackTimeSec: number | null }
 
+type ItunesResult = { trackName: string; artistName: string; artworkUrl100: string; previewUrl: string; trackTimeMillis: number }
+
+// Score how well an iTunes result matches title+artist (higher = better)
+function itunesMatchScore(r: ItunesResult, title: string, artist: string): number {
+  const tn = r.trackName?.toLowerCase() ?? ''
+  const an = r.artistName?.toLowerCase() ?? ''
+  const tl = title.toLowerCase()
+  const al = artist.toLowerCase()
+  // strip leading "the " for artist comparison
+  const alCore = al.replace(/^the\s+/i, '')
+  const anCore = an.replace(/^the\s+/i, '')
+  let score = 0
+  if (tn === tl)               score += 4
+  else if (tn.includes(tl))    score += 2
+  if (anCore === alCore)        score += 3
+  else if (anCore.includes(alCore) || alCore.includes(anCore)) score += 2
+  else if (an.includes(al) || al.includes(an)) score += 1
+  return score
+}
+
+function bestItunesMatch(results: ItunesResult[], title: string, artist: string): ItunesResult | undefined {
+  if (!results.length) return undefined
+  const scored = results.map(r => ({ r, s: itunesMatchScore(r, title, artist) }))
+  scored.sort((a, b) => b.s - a.s)
+  return scored[0].s > 0 ? scored[0].r : results[0]
+}
+
 function useItunesData(songs: readonly SongEntry[]) {
   const [data, setData] = useState<ItunesTrack[]>(() => songs.map(() => ({ artwork: null, previewUrl: null, trackName: null, artistName: null, trackTimeSec: null })))
   useEffect(() => {
@@ -193,14 +220,8 @@ function useItunesData(songs: readonly SongEntry[]) {
         const q = encodeURIComponent(`${song.title} ${song.artist}`)
         const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=10&country=us`)
         const d = await r.json()
-        const results: Array<{ trackName: string; artistName: string; artworkUrl100: string; previewUrl: string; trackTimeMillis: number }> = d.results ?? []
-        const tl = song.title.toLowerCase()
-        const al = song.artist.toLowerCase()
-        // best match: exact title + artist; fallback: title only; then first result
-        const best =
-          results.find(r => r.trackName?.toLowerCase() === tl && r.artistName?.toLowerCase().includes(al.split(' ')[0])) ??
-          results.find(r => r.trackName?.toLowerCase().includes(tl)) ??
-          results[0]
+        const results: ItunesResult[] = d.results ?? []
+        const best = bestItunesMatch(results, song.title, song.artist)
         if (best) {
           setData(prev => {
             const n = [...prev]
@@ -231,13 +252,8 @@ function useItunesSingle(title: string, artist: string) {
     fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=10&country=us`)
       .then(r => r.json())
       .then(d => {
-        const results: Array<{ trackName: string; artistName: string; artworkUrl100: string; previewUrl: string; trackTimeMillis: number }> = d.results ?? []
-        const tl = title.toLowerCase()
-        const al = artist.toLowerCase()
-        const best =
-          results.find(r => r.trackName?.toLowerCase() === tl && r.artistName?.toLowerCase().includes(al.split(' ')[0])) ??
-          results.find(r => r.trackName?.toLowerCase().includes(tl)) ??
-          results[0]
+        const results: ItunesResult[] = d.results ?? []
+        const best = bestItunesMatch(results, title, artist)
         if (best) setTrack({
           artwork: best.artworkUrl100?.replace('100x100bb', '400x400bb') ?? null,
           previewUrl: best.previewUrl ?? null,
