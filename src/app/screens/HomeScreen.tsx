@@ -135,7 +135,7 @@ const BTNS_TOP_VH  = (841 / 1080) * 100     // 77.87 vh
 const DOTS_TOP_VH  = (916 / 1080) * 100     // 84.81 vh
 const APPS_TOP_VH  = (944 / 1080) * 100     // 87.41 vh
 
-const PANEL_COLS    = 3
+const PANEL_COLS    = 2
 
 const sfPro     = `-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif`
 const sfCompact = `'SF Compact Rounded','SF Pro Rounded',-apple-system,sans-serif`
@@ -1041,7 +1041,7 @@ function ProfilePanel({ panelItems, singles, panelIdx, onSelect }: {
   /* Match settings panel sizing tokens
      Math: CARD_H(270) - 2×PAD(16) = 238px available
      3×CIRCLE(70) + 2×GAP(14) = 238px — fits exactly at max */
-  const CARD_H  = 'clamp(180px, 25vh, 270px)'
+  const CARD_H  = 'clamp(130px, 18vh, 200px)'
   const CIRCLE  = 'clamp(48px, 4.2vw, 70px)'
   const GAP     = 'clamp(8px,  0.85vw, 14px)'
   const PAD     = 'clamp(10px, 0.83vw, 16px)'
@@ -1052,7 +1052,7 @@ function ProfilePanel({ panelItems, singles, panelIdx, onSelect }: {
     <div style={{
       height: CARD_H,
       display: 'grid',
-      gridTemplateColumns: `repeat(3, ${CIRCLE})`,
+      gridTemplateColumns: `repeat(2, ${CIRCLE})`,
       gridAutoRows: CIRCLE,
       gap: GAP,
       padding: PAD,

@@ -27,22 +27,11 @@ export interface Profile {
 }
 
 const DEFAULT_PROFILES: Profile[] = [
-  { id: 'p1', name: 'Stella',         color: '#34c759', type: 'single' },
-  { id: 'p2', name: 'Marco',          color: '#ff375f', type: 'single' },
-  { id: 'p3', name: 'Chiara',         color: '#0a84ff', type: 'single' },
-  { id: 'p4', name: 'Luca',           color: '#ffd60a', type: 'single' },
-  { id: 'p5', name: 'Sofia',          color: '#bf5af2', type: 'single' },
+  { id: 'p1', name: 'Marco',  color: '#ff375f', type: 'single' },
+  { id: 'p2', name: 'Chiara', color: '#0a84ff', type: 'single' },
   {
-    id: 'g1', name: 'Stella & Marco', color: '#34c759', type: 'group',
-    members: [{ color: '#34c759' }, { color: '#ff375f' }],
-  },
-  {
-    id: 'g2', name: 'Family',         color: '#0a84ff', type: 'group',
-    members: [{ color: '#0a84ff' }, { color: '#ffd60a' }, { color: '#bf5af2' }],
-  },
-  {
-    id: 'g3', name: 'Friends',        color: '#ff375f', type: 'group',
-    members: [{ color: '#ff375f' }, { color: '#34c759' }, { color: '#ffd60a' }],
+    id: 'g1', name: 'Gruppo', color: '#ff375f', type: 'group',
+    members: [{ color: '#ff375f' }, { color: '#0a84ff' }],
   },
 ]
 
