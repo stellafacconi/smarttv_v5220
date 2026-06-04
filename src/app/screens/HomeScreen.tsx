@@ -179,6 +179,7 @@ export default function HomeScreen({
   const [settingsBtn,     setSettingsBtn]     = useState(0)   // 0-3 for 2×2 quick-actions grid
   const [settingsSubItem, setSettingsSubItem] = useState(0)   // 0=slider, 1=label (within card 1/2)
   const [volume,          setVolume]          = useState(40)  // 0–100
+  const [videoMuted,      setVideoMuted]      = useState(true) // true until first user gesture
   const [brightness,      setBrightness]      = useState(80)  // 0–100
 
   const [wH, setWH] = useState(window.innerHeight)
@@ -487,9 +488,9 @@ export default function HomeScreen({
     const unlock = () => {
       if (audioUnlocked.current) return
       audioUnlocked.current = true
+      setVideoMuted(false)   // React re-renders with muted={false} — survives re-renders
       const vid = videoRef.current
       if (!vid) return
-      vid.muted = false
       vid.volume = 0
       const target = volumeRef.current / 100
       const FADE_IN_MS = 1200
@@ -515,7 +516,6 @@ export default function HomeScreen({
     if (!audioUnlocked.current) return
     const vid = videoRef.current
     if (!vid) return
-    vid.muted  = false
     vid.volume = 0
     const target = volumeRef.current / 100
     let rafId: number
@@ -563,7 +563,7 @@ export default function HomeScreen({
         <motion.video
           key={HERO_SLIDES[carousel].src}
           ref={videoRef}
-          autoPlay loop muted playsInline
+          autoPlay loop muted={videoMuted} playsInline
           initial={{ opacity: 0, scale: 1.015 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.015 }}
