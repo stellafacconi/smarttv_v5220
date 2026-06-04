@@ -202,50 +202,45 @@ function CreateTypeOption({
   onSelect: () => void
 }) {
   return (
-    <motion.button
-      animate={{
-        scale: focused ? 1.02 : 1,
-        filter: focused ? 'drop-shadow(0px 0px 24px rgba(255,255,255,0.22))' : 'drop-shadow(0px 0px 0px rgba(255,255,255,0))',
-      }}
-
-      transition={{ duration: 0.18, ease: [0.34, 1.2, 0.64, 1] }}
+    <div
       onMouseEnter={onFocus}
       onClick={onSelect}
-      style={{
-        width: 210,
-        height: 258,
-        padding: '18px 15px 16px',
-        border: focused ? '2px solid rgba(255,255,255,0.68)' : '1px solid transparent',
-        borderRadius: 36,
-        background: focused ? 'rgba(255,255,255,0.075)' : 'transparent',
-        backdropFilter: focused ? 'blur(42px)' : 'none',
-        WebkitBackdropFilter: focused ? 'blur(42px)' : 'none',
-        boxShadow: focused
-          ? '0px 0px 34px rgba(255,255,255,0.16), inset 0px 1px 1px rgba(255,255,255,0.42)'
-          : 'none',
-        outline: 'none',
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 20,
-        cursor: 'pointer',
-        color: '#fff',
-      }}
+      style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, cursor: 'pointer', width: 210 }}
     >
+      {/* ── Selection card — fades in behind icon+label, same as ChooseScreen ── */}
+      <motion.div
+        animate={{ opacity: focused ? 1 : 0, scale: focused ? 1 : 0.92 }}
+        transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+        style={{
+          position: 'absolute',
+          top: -22,
+          left: -20,
+          right: -20,
+          bottom: -22,
+          borderRadius: 36,
+          background: 'rgba(255,255,255,0.10)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.14)',
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.22)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Icon circle */}
       <div
         style={{
           position: 'relative',
+          zIndex: 1,
           width: 153.769,
           height: 153.769,
           borderRadius: 307.538,
-          background: focused ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.10)',
+          background: 'rgba(255,255,255,0.10)',
           backdropFilter: 'blur(50px)',
           WebkitBackdropFilter: 'blur(50px)',
-          border: focused ? '1px solid rgba(255,255,255,0.36)' : '1px solid rgba(255,255,255,0.08)',
-          boxShadow: focused
-            ? '0px 22px 36px rgba(0,0,0,0.18), inset 0px 1px 1px rgba(255,255,255,0.60)'
-            : '0px 40px 30px 0px rgba(0,0,0,0.05), inset 0px 1px 1px 0px rgba(255,255,255,0.60)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0px 40px 30px 0px rgba(0,0,0,0.05), inset 0px 1px 1px 0px rgba(255,255,255,0.60)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -253,22 +248,16 @@ function CreateTypeOption({
           boxSizing: 'border-box',
         }}
       >
-        <span
-          style={{
-            fontFamily: sfPro,
-            fontSize: 49.206,
-            fontWeight: 300,
-            lineHeight: 'normal',
-            color: '#fff',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <span style={{ fontFamily: sfPro, fontSize: 49.206, fontWeight: 300, lineHeight: 'normal', color: '#fff', whiteSpace: 'nowrap' }}>
           {symbol}
         </span>
       </div>
 
+      {/* Label pill */}
       <div
         style={{
+          position: 'relative',
+          zIndex: 1,
           height: 44,
           padding: '8px 22px',
           borderRadius: 24,
@@ -279,22 +268,19 @@ function CreateTypeOption({
           alignItems: 'center',
           justifyContent: 'center',
           boxSizing: 'border-box',
+          transition: 'background 0.18s',
         }}
       >
-        <span
-          style={{
-            fontFamily: sfCompact,
-            fontSize: 17,
-            fontWeight: 600,
-            lineHeight: '22px',
-            letterSpacing: 0.68,
-            color: focused ? '#131111' : 'rgba(255,255,255,0.9)',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <span style={{
+          fontFamily: sfCompact, fontSize: 17, fontWeight: 600,
+          lineHeight: '22px', letterSpacing: 0.68,
+          color: focused ? '#131111' : 'rgba(255,255,255,0.9)',
+          whiteSpace: 'nowrap',
+          transition: 'color 0.18s',
+        }}>
           {label}
         </span>
       </div>
-    </motion.button>
+    </div>
   )
 }
