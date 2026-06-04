@@ -172,6 +172,54 @@ function parseLrc(raw: string): LyricLine[] {
 const LYRIC_LINES = parseLrc(lyricsLrc)
 const LYRIC_DURATION = LYRIC_LINES.at(-1)?.time ?? 210
 
+/* ─── Song list ─────────────────────────────────────────── */
+const SONG_LIST = [
+  { title: '360',             artist: 'Charli XCX'        },
+  { title: 'Flowers',         artist: 'Miley Cyrus'       },
+  { title: 'As It Was',       artist: 'Harry Styles'      },
+  { title: 'Anti-Hero',       artist: 'Taylor Swift'      },
+  { title: 'Blinding Lights', artist: 'The Weeknd'        },
+  { title: 'Espresso',        artist: 'Sabrina Carpenter' },
+] as const
+type SongEntry = typeof SONG_LIST[number]
+
+function useItunesArtwork(songs: readonly SongEntry[]) {
+  const [artworks, setArtworks] = useState<(string | null)[]>(() => songs.map(() => null))
+  useEffect(() => {
+    songs.forEach(async (song, i) => {
+      try {
+        const q = encodeURIComponent(`${song.artist} ${song.title}`)
+        const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=1&country=us`)
+        const d = await r.json()
+        const art = (d.results?.[0]?.artworkUrl100 as string | undefined)
+          ?.replace('100x100bb', '400x400bb')
+        setArtworks(prev => { const n = [...prev]; n[i] = art ?? null; return n })
+      } catch {}
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return artworks
+}
+
+function useLrclib(title: string, artist: string) {
+  const [lines, setLines] = useState<LyricLine[] | null>(null)
+  useEffect(() => {
+    setLines(null)
+    const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`
+    fetch(url)
+      .then(r => r.json())
+      .then((d: { syncedLyrics?: string; plainLyrics?: string }) => {
+        if (d.syncedLyrics) setLines(parseLrc(d.syncedLyrics))
+        else if (d.plainLyrics) {
+          const plain = d.plainLyrics.split('\n').filter((l: string) => l.trim())
+          setLines(plain.map((text: string, idx: number) => ({ time: idx * 3, text, raw: text })))
+        }
+      })
+      .catch(() => {})
+  }, [title, artist])
+  return lines
+}
+
 function findActiveLyricIndex(lines: LyricLine[], currentTime: number) {
   const syncedTime = currentTime + LYRIC_TIMING_OFFSET_SECONDS
   let active = 0
@@ -211,11 +259,15 @@ function useSyncedLyricTime(audioRef: RefObject<HTMLAudioElement | null>, enable
 function SyncedLyrics({
   audioRef,
   compact = false,
+  lyricLines,
 }: {
   audioRef: RefObject<HTMLAudioElement | null>
   compact?: boolean
+  lyricLines?: LyricLine[] | null
 }) {
-  const lines = LYRIC_LINES.length > 0 ? LYRIC_LINES : [{ time: 0, text: "I'll rise above the fear", raw: '' }]
+  const lines = (lyricLines && lyricLines.length > 0)
+    ? lyricLines
+    : LYRIC_LINES.length > 0 ? LYRIC_LINES : [{ time: 0, text: "I'll rise above the fear", raw: '' }]
   const currentTime = useSyncedLyricTime(audioRef)
   const activeIndex = findActiveLyricIndex(lines, currentTime)
   const viewportHeight = compact ? 336 : 364
@@ -2013,16 +2065,18 @@ function MusicCardAddOrSing({
 }
 
 /* ─── Browser Screen ─────────────────────────────────────── */
-function BrowserScreen({ onSingNow, onBack, onSearch }: {
-  onSingNow: () => void
+function BrowserScreen({ onSingNow, onBack, onSearch, songs, artworks }: {
+  onSingNow: (songIdx: number) => void
   onBack: () => void
   onSearch: () => void
+  songs: readonly SongEntry[]
+  artworks: (string | null)[]
 }) {
   const [selectedCard, setSelectedCard] = useState<number | null>(null)
   const [cardActionMode, setCardActionMode] = useState<CardActionMode>('add')
   const [addingToList, setAddingToList] = useState(false)
   const [addedToList, setAddedToList] = useState(false)
-  const albumCards = [bRect5, bMusicCard1, bMusicCard2, bMusicCard3, bMusicCard4, bMusicCard5]
+  const albumCards = songs.map((_, i) => artworks[i] ?? bMusicCard1)
   const albumLefts = [194, 450, 706, 962, 1218, 1474]
   const pinData = [
     { left: 351, top: 207, mode: '3' as const },
@@ -2098,12 +2152,12 @@ function BrowserScreen({ onSingNow, onBack, onSearch }: {
   const activateBrowserTarget = useCallback((targetId: string) => {
     if (targetId === 'back') onBack()
     else if (targetId === 'search') onSearch()
-    else if (targetId === 'tab-sing') onSingNow()
-    else if (targetId === 'bar-play' || targetId === 'bar-forward') onSingNow()
+    else if (targetId === 'tab-sing') onSingNow(selectedCard ?? 0)
+    else if (targetId === 'bar-play' || targetId === 'bar-forward') onSingNow(selectedCard ?? 0)
     else if (targetId === 'action-add') {
       startAddToList()
     } else if (targetId === 'action-sing') {
-      onSingNow()
+      onSingNow(selectedCard ?? 0)
     } else if (targetId.startsWith('album-')) {
       const index = Number(targetId.replace('album-', ''))
       if (!Number.isNaN(index)) {
@@ -2113,9 +2167,9 @@ function BrowserScreen({ onSingNow, onBack, onSearch }: {
         setAddedToList(false)
       }
     } else if (targetId.startsWith('next-') || targetId.startsWith('playlist-')) {
-      onSingNow()
+      onSingNow(selectedCard ?? 0)
     }
-  }, [onBack, onSearch, onSingNow, startAddToList])
+  }, [onBack, onSearch, onSingNow, selectedCard, startAddToList])
   const handleBrowserMove = useCallback((targetId: string) => {
     if (targetId === 'action-add') setCardActionMode('add')
     else if (targetId === 'action-sing') setCardActionMode('sing')
@@ -2317,10 +2371,25 @@ function BrowserScreen({ onSingNow, onBack, onSearch }: {
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: 30 }}
           />
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(76,76,76,0.75)', borderRadius: 30 }} />
+          {selectedCard !== null && (
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              padding: '8px 14px 10px',
+              background: 'linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 100%)',
+              borderRadius: '0 0 30px 30px',
+              zIndex: 2,
+            }}>
+              <p style={{ margin: 0, fontFamily: sfPro, fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: '17px', letterSpacing: '-0.1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{songs[selectedCard].title}</p>
+              <p style={{ margin: 0, fontFamily: sfPro, fontSize: 11, fontWeight: 400, color: 'rgba(255,255,255,0.72)', lineHeight: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{songs[selectedCard].artist}</p>
+            </div>
+          )}
           <MusicCardAddOrSing
             primaryMode={cardActionMode}
             onPrimary={() => {
-              if (cardActionMode === 'sing') onSingNow()
+              if (cardActionMode === 'sing') onSingNow(selectedCard ?? 0)
               else startAddToList()
             }}
             onSwap={setCardActionMode}
@@ -2795,10 +2864,11 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
 }
 
 /* ─── Singing Screen ─────────────────────────────────────── */
-function SingingScreen({ onFinish, onBack, showGuidanceInitially = false }: {
+function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricLines }: {
   onFinish: () => void
   onBack: () => void
   showGuidanceInitially?: boolean
+  lyricLines?: LyricLine[] | null
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const finishRef = useRef(onFinish)
@@ -3220,7 +3290,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false }: {
             width: 780,
             zIndex: 5,
           }}>
-            <SyncedLyrics audioRef={audioRef} compact />
+            <SyncedLyrics audioRef={audioRef} compact lyricLines={lyricLines} />
           </div>
         </>
       ) : (
@@ -3250,7 +3320,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false }: {
             </div>
             {/* Right: lyrics */}
             <div style={{ width: 574 }}>
-              <SyncedLyrics audioRef={audioRef} />
+              <SyncedLyrics audioRef={audioRef} lyricLines={lyricLines} />
             </div>
           </div>
         </div>
@@ -3590,6 +3660,9 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
   const startsWithSingingGuidance = initialStep === 'singing-guide'
   const [step, setStep] = useState<SingStep>(initialStep === 'browser-guide' ? 'guide' : startsWithSingingGuidance ? 'singing' : 'browser')
   const [scale, setScale] = useState(1)
+  const [selectedSongIdx, setSelectedSongIdx] = useState(0)
+  const artworks = useItunesArtwork(SONG_LIST)
+  const lyricLines = useLrclib(SONG_LIST[selectedSongIdx].title, SONG_LIST[selectedSongIdx].artist)
 
   useEffect(() => {
     const update = () => setScale(Math.min(window.innerWidth / 1920, window.innerHeight / 1080))
@@ -3630,9 +3703,11 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
         {step === 'browser' && (
           <BrowserScreen
             key="browser"
-            onSingNow={() => setStep('singing')}
+            onSingNow={(idx) => { setSelectedSongIdx(idx); setStep('singing') }}
             onBack={onBack}
             onSearch={() => setStep('search')}
+            songs={SONG_LIST}
+            artworks={artworks}
           />
         )}
         {step === 'search' && (
@@ -3648,6 +3723,7 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
             onFinish={() => setStep('finished')}
             onBack={() => setStep('browser')}
             showGuidanceInitially={startsWithSingingGuidance}
+            lyricLines={lyricLines}
           />
         )}
         {step === 'finished' && (
