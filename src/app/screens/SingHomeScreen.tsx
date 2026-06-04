@@ -183,22 +183,41 @@ const SONG_LIST = [
 ] as const
 type SongEntry = typeof SONG_LIST[number]
 
-function useItunesArtwork(songs: readonly SongEntry[]) {
-  const [artworks, setArtworks] = useState<(string | null)[]>(() => songs.map(() => null))
+type ItunesTrack = { artwork: string | null; previewUrl: string | null; trackName: string | null; artistName: string | null }
+
+function useItunesData(songs: readonly SongEntry[]) {
+  const [data, setData] = useState<ItunesTrack[]>(() => songs.map(() => ({ artwork: null, previewUrl: null, trackName: null, artistName: null })))
   useEffect(() => {
     songs.forEach(async (song, i) => {
       try {
-        const q = encodeURIComponent(`${song.artist} ${song.title}`)
-        const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=1&country=us`)
+        const q = encodeURIComponent(`${song.title} ${song.artist}`)
+        const r = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=10&country=us`)
         const d = await r.json()
-        const art = (d.results?.[0]?.artworkUrl100 as string | undefined)
-          ?.replace('100x100bb', '400x400bb')
-        setArtworks(prev => { const n = [...prev]; n[i] = art ?? null; return n })
+        const results: Array<{ trackName: string; artistName: string; artworkUrl100: string; previewUrl: string }> = d.results ?? []
+        const tl = song.title.toLowerCase()
+        const al = song.artist.toLowerCase()
+        // best match: exact title + artist; fallback: title only; then first result
+        const best =
+          results.find(r => r.trackName?.toLowerCase() === tl && r.artistName?.toLowerCase().includes(al.split(' ')[0])) ??
+          results.find(r => r.trackName?.toLowerCase().includes(tl)) ??
+          results[0]
+        if (best) {
+          setData(prev => {
+            const n = [...prev]
+            n[i] = {
+              artwork: best.artworkUrl100?.replace('100x100bb', '400x400bb') ?? null,
+              previewUrl: best.previewUrl ?? null,
+              trackName: best.trackName ?? null,
+              artistName: best.artistName ?? null,
+            }
+            return n
+          })
+        }
       } catch {}
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  return artworks
+  return data
 }
 
 function useLrclib(title: string, artist: string) {
@@ -2864,11 +2883,15 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
 }
 
 /* ─── Singing Screen ─────────────────────────────────────── */
-function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricLines }: {
+function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricLines, previewUrl, songTitle, songArtist, artworkUrl }: {
   onFinish: () => void
   onBack: () => void
   showGuidanceInitially?: boolean
   lyricLines?: LyricLine[] | null
+  previewUrl?: string | null
+  songTitle?: string
+  songArtist?: string
+  artworkUrl?: string | null
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const finishRef = useRef(onFinish)
@@ -3150,7 +3173,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
       }}
       style={{ position: 'absolute', inset: 0 }}
     >
-      <audio ref={audioRef} aria-hidden="true" preload="metadata" style={{ display: 'none' }} />
+      <audio ref={audioRef} src={previewUrl ?? undefined} aria-hidden="true" preload="auto" autoPlay loop style={{ display: 'none' }} />
 
       {/* Background glows */}
       <div style={{ position: 'absolute', left: -157, top: 1058, width: 2210, height: 715, overflow: 'hidden', transform: 'rotate(180deg)', zIndex: 0 }}>
@@ -3182,8 +3205,8 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
             <img src={sRect6} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
-            <p style={{ fontFamily: sfPro, fontSize: 17.253, fontWeight: 700, color: '#fff', lineHeight: '21.958px', letterSpacing: '-0.204px', margin: 0 }}>Name 01</p>
-            <p style={{ fontFamily: sfPro, fontSize: 13.332, fontWeight: 590, color: '#fff', lineHeight: '17.253px', letterSpacing: '-0.337px', opacity: 0.60, margin: 0 }}>Singer</p>
+            <p style={{ fontFamily: sfPro, fontSize: 17.253, fontWeight: 700, color: '#fff', lineHeight: '21.958px', letterSpacing: '-0.204px', margin: 0 }}>{songTitle ?? 'Song'}</p>
+            <p style={{ fontFamily: sfPro, fontSize: 13.332, fontWeight: 590, color: '#fff', lineHeight: '17.253px', letterSpacing: '-0.337px', opacity: 0.60, margin: 0 }}>{songArtist ?? ''}</p>
           </div>
         </div>
       </div>
@@ -3208,8 +3231,8 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
             <img src={sRect5} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
-            <p style={{ fontFamily: sfPro, fontSize: 23.515, fontWeight: 700, color: '#fff', lineHeight: '29.929px', letterSpacing: '-0.278px', margin: 0 }}>Name 01</p>
-            <p style={{ fontFamily: sfPro, fontSize: 18.171, fontWeight: 590, color: '#fff', lineHeight: '23.515px', letterSpacing: '-0.46px', opacity: 0.60, margin: 0 }}>Singer</p>
+            <p style={{ fontFamily: sfPro, fontSize: 23.515, fontWeight: 700, color: '#fff', lineHeight: '29.929px', letterSpacing: '-0.278px', margin: 0 }}>{songTitle ?? 'Song'}</p>
+            <p style={{ fontFamily: sfPro, fontSize: 18.171, fontWeight: 590, color: '#fff', lineHeight: '23.515px', letterSpacing: '-0.46px', opacity: 0.60, margin: 0 }}>{songArtist ?? ''}</p>
           </div>
         </div>
       </div>
@@ -3310,12 +3333,12 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
           <div style={{ display: 'flex', gap: 208, alignItems: 'center', justifyContent: 'center' }}>
             {/* Left: album art + title */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 50, alignItems: 'flex-start', width: 301 }}>
-              <div style={{ width: 301, height: 302, borderRadius: 20, overflow: 'hidden', position: 'relative' }}>
-                <img src={sAlbumArt} alt="" style={{ position: 'absolute', height: '352.99%', left: '-133.99%', top: '-66.68%', width: '487.68%', maxWidth: 'none', objectFit: 'cover', pointerEvents: 'none' }} />
+              <div style={{ width: 301, height: 302, borderRadius: 20, overflow: 'hidden', position: 'relative', background: '#222' }}>
+                <img src={artworkUrl ?? sAlbumArt} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
               </div>
               <div style={{ color: '#fff' }}>
-                <p style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontSize: 40, fontWeight: 500, color: '#fff', lineHeight: 'normal', margin: 0 }}>Rise Above</p>
-                <p style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontSize: 24, fontWeight: 300, color: '#fff', lineHeight: 'normal', margin: 0 }}>Amber Skye</p>
+                <p style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontSize: 40, fontWeight: 500, color: '#fff', lineHeight: 'normal', margin: 0 }}>{songTitle ?? 'Song'}</p>
+                <p style={{ fontFamily: "'SF Pro Display', -apple-system, sans-serif", fontSize: 24, fontWeight: 300, color: '#fff', lineHeight: 'normal', margin: 0 }}>{songArtist ?? ''}</p>
               </div>
             </div>
             {/* Right: lyrics */}
@@ -3661,8 +3684,9 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
   const [step, setStep] = useState<SingStep>(initialStep === 'browser-guide' ? 'guide' : startsWithSingingGuidance ? 'singing' : 'browser')
   const [scale, setScale] = useState(1)
   const [selectedSongIdx, setSelectedSongIdx] = useState(0)
-  const artworks = useItunesArtwork(SONG_LIST)
-  const lyricLines = useLrclib(SONG_LIST[selectedSongIdx].title, SONG_LIST[selectedSongIdx].artist)
+  const itunesData   = useItunesData(SONG_LIST)
+  const currentTrack = itunesData[selectedSongIdx]
+  const lyricLines   = useLrclib(SONG_LIST[selectedSongIdx].title, SONG_LIST[selectedSongIdx].artist)
 
   useEffect(() => {
     const update = () => setScale(Math.min(window.innerWidth / 1920, window.innerHeight / 1080))
@@ -3707,7 +3731,7 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
             onBack={onBack}
             onSearch={() => setStep('search')}
             songs={SONG_LIST}
-            artworks={artworks}
+            artworks={itunesData.map(d => d.artwork)}
           />
         )}
         {step === 'search' && (
@@ -3724,6 +3748,10 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
             onBack={() => setStep('browser')}
             showGuidanceInitially={startsWithSingingGuidance}
             lyricLines={lyricLines}
+            previewUrl={currentTrack?.previewUrl}
+            songTitle={SONG_LIST[selectedSongIdx].title}
+            songArtist={SONG_LIST[selectedSongIdx].artist}
+            artworkUrl={currentTrack?.artwork}
           />
         )}
         {step === 'finished' && (
