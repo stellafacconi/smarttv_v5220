@@ -317,10 +317,12 @@ function useItunesSingle(title: string, artist: string) {
 function useLrclib(title: string, artist: string) {
   const [lines, setLines] = useState<LyricLine[] | null>(null)
   useEffect(() => {
+    console.log("useLrclib title:", title, "artist:", artist)
     const t = title?.toLowerCase() ?? ''
     const a = artist?.toLowerCase() ?? ''
 
     if (a === 'lito' || t.includes('sacco')) {
+      console.log("Matched LITO lyrics")
       setLines(LITO_LYRICS)
       return
     }
@@ -335,23 +337,34 @@ function useLrclib(title: string, artist: string) {
     else if (t.includes('material') || t.includes('girl')) bundledKey = 'materialgirl'
     else if (t.includes('abnormal') || t.includes('adults') || t.includes('talking') || a.includes('strokes')) bundledKey = 'strokes'
 
+    console.log("bundledKey matched:", bundledKey)
+
     if (bundledKey && BUNDLED_LYRICS[bundledKey]) {
-      setLines(parseLrc(BUNDLED_LYRICS[bundledKey]))
+      const parsed = parseLrc(BUNDLED_LYRICS[bundledKey])
+      console.log("Found bundled lyrics, parsed lines:", parsed.length)
+      setLines(parsed)
       return
     }
 
+    console.log("Did not find bundled lyrics, fetching from API...")
     setLines(null)
     const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`
     fetch(url)
       .then(r => r.json())
       .then((d: { syncedLyrics?: string; plainLyrics?: string }) => {
-        if (d.syncedLyrics) setLines(parseLrc(d.syncedLyrics))
+        if (d.syncedLyrics) {
+          const parsed = parseLrc(d.syncedLyrics)
+          console.log("API returned synced lyrics, parsed lines:", parsed.length)
+          setLines(parsed)
+        }
         else if (d.plainLyrics) {
           const plain = d.plainLyrics.split('\n').filter((l: string) => l.trim())
-          setLines(plain.map((text: string, idx: number) => ({ time: idx * 3, text, raw: text })))
+          const parsed = plain.map((text: string, idx: number) => ({ time: idx * 3, text, raw: text }))
+          console.log("API returned plain lyrics, lines:", parsed.length)
+          setLines(parsed)
         }
       })
-      .catch(() => {})
+      .catch((e) => console.error("Lyrics fetch error:", e))
   }, [title, artist])
   return lines
 }
@@ -393,20 +406,17 @@ function useSyncedLyricTime(audioRef: RefObject<HTMLMediaElement | null>, enable
 }
 
 function SyncedLyrics({
-  audioRef,
+  currentTime,
   compact = false,
   lyricLines,
-  enabled = true,
 }: {
-  audioRef: RefObject<HTMLMediaElement | null>
+  currentTime: number
   compact?: boolean
   lyricLines?: LyricLine[] | null
-  enabled?: boolean
 }) {
   const lines = (lyricLines && lyricLines.length > 0)
     ? lyricLines
     : LYRIC_LINES.length > 0 ? LYRIC_LINES : [{ time: 0, text: "I'll rise above the fear", raw: '' }]
-  const currentTime = useSyncedLyricTime(audioRef, enabled)
   const activeIndex = findActiveLyricIndex(lines, currentTime)
   const viewportHeight = compact ? 336 : 364
   const centerOffset = viewportHeight / 2 - LYRIC_ROW_HEIGHT / 2
@@ -679,11 +689,28 @@ function MemojiGroupPill({ m0, m1, m2 }: { m0: string; m1: string; m2: string })
 }
 
 /* ─── Shared: BottomBar (no memoji in center — it's a separate overlay) ── */
-function BottomBar({ showTime, isPlaying, isListOpen, onListClick }: {
+function formatTime(sec: number): string {
+  if (!Number.isFinite(sec) || sec < 0) return '00:00'
+  const m = Math.floor(sec / 60)
+  const s = Math.floor(sec % 60)
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+}
+
+/* ─── Shared: BottomBar (no memoji in center — it's a separate overlay) ── */
+function BottomBar({
+  showTime,
+  isPlaying,
+  isListOpen,
+  onListClick,
+  currentTime = 0,
+  duration = 210,
+}: {
   showTime?: boolean
   isPlaying?: boolean
   isListOpen?: boolean
   onListClick?: () => void
+  currentTime?: number
+  duration?: number
 }) {
   const iconStyle = (size = 28): React.CSSProperties => ({
     fontFamily: "'SF Pro', 'SF Pro Display', -apple-system, sans-serif",
@@ -747,7 +774,7 @@ function BottomBar({ showTime, isPlaying, isListOpen, onListClick }: {
                 fontFamily: sfPro, fontSize: 17, fontWeight: 590,
                 color: 'rgba(255,255,255,0.70)', letterSpacing: '-0.43px',
                 whiteSpace: 'nowrap', width: 128, textAlign: 'center',
-              }}>02:34 / 03:30</span>
+              }}>{formatTime(currentTime)} / {formatTime(duration)}</span>
             )}
           </div>
         </div>
@@ -3029,6 +3056,7 @@ function SingingScreen({
   setCurrentListRows: React.Dispatch<React.SetStateAction<CurrentListRow[]>>
 }) {
   const audioRef = useRef<HTMLVideoElement | null>(null)
+  const videoPath = getSongVideoPath(songTitle)
   const finishRef = useRef(onFinish)
   finishRef.current = onFinish
   const [showSidebar, setShowSidebar] = useState(false)
@@ -3041,6 +3069,17 @@ function SingingScreen({
   const [countdown, setCountdown] = useState<number | null>(null)
   const [songStarted, setSongStarted] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [videoDuration, setVideoDuration] = useState(210)
+  const currentTime = useSyncedLyricTime(audioRef, songStarted)
+
+  // Ensure volume is at maximum (1.0) and unmuted when the video path changes
+  useEffect(() => {
+    const video = audioRef.current
+    if (video) {
+      video.volume = 1
+      video.muted = false
+    }
+  }, [videoPath])
 
   const startCountdown = () => {
     setCountdown(3)
@@ -3059,8 +3098,6 @@ function SingingScreen({
     }, 1000)
     return () => clearTimeout(timer)
   }, [countdown])
-
-  const videoPath = getSongVideoPath(songTitle)
   const [emojiPickerPlayer, setEmojiPickerPlayer] = useState<PlayerId | null>(null)
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; x: number; fontSize: number; rotate: number; blur: number; opacity: number; delay: number }[]>([])
   const singingTargets: TouchTarget[] = [
@@ -3341,6 +3378,10 @@ function SingingScreen({
         src={videoPath}
         loop
         playsInline
+        onLoadedMetadata={(e) => {
+          console.log('Video metadata loaded, duration:', e.currentTarget.duration)
+          setVideoDuration(e.currentTarget.duration)
+        }}
         onPlay={() => {
           console.log('Video started playing:', videoPath)
           setIsPlaying(true)
@@ -3497,7 +3538,7 @@ function SingingScreen({
             width: 780,
             zIndex: 5,
           }}>
-            <SyncedLyrics audioRef={audioRef} compact lyricLines={lyricLines} enabled={songStarted} />
+            <SyncedLyrics currentTime={currentTime} compact lyricLines={lyricLines} />
           </div>
         </>
       ) : (
@@ -3530,7 +3571,7 @@ function SingingScreen({
             </div>
             {/* Right: lyrics */}
             <div style={{ width: 574 }}>
-              <SyncedLyrics audioRef={audioRef} lyricLines={lyricLines} enabled={songStarted} />
+              <SyncedLyrics currentTime={currentTime} lyricLines={lyricLines} />
             </div>
           </div>
         </div>
@@ -3603,6 +3644,8 @@ function SingingScreen({
           isPlaying={isPlaying}
           isListOpen={showList}
           onListClick={() => setShowList(v => !v)}
+          currentTime={currentTime}
+          duration={videoDuration}
         />
       </div>
 
