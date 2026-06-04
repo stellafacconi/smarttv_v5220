@@ -126,7 +126,7 @@ export default function App() {
             if (profileId === 'family') {
               setActiveGroupId('g1')
               setGroupName('Family')
-              setScreen('GROUP_HUB')
+              setScreen('PARTY')
             } else {
               setScreen('HOME')
             }

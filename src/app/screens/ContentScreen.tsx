@@ -222,7 +222,7 @@ export default function ContentScreen({ islandId, islandLabel, IslandIcon, users
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (preview) { setPreview(null); return }
-      if (e.key === 'Escape' || e.key === 'Backspace') { onBack(); return }
+      if (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q') { onBack(); return }
       const b = BINDINGS[e.key]
       if (b) { e.preventDefault(); move(b[0], b[1]) }
     }

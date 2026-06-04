@@ -36,7 +36,7 @@ export default function SearchScreen({ onClose }: Props) {
 
   /* keyboard nav */
   const handleKey = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' || e.key === 'q' || e.key === 'Q') {
       if (showKeyboard) { setShowKeyboard(false); return }
       onClose(); return
     }

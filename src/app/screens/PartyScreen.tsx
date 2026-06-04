@@ -237,7 +237,7 @@ function useRemote({
       const NEXT = e.key === 'd' || e.key === 'D' || e.key === 's' || e.key === 'S' || e.key === 'ArrowRight' || e.key === 'ArrowDown'
       const PREV = e.key === 'a' || e.key === 'A' || e.key === 'w' || e.key === 'W' || e.key === 'ArrowLeft'  || e.key === 'ArrowUp'
       const OK   = e.key === 'e' || e.key === 'E' || e.key === 'Enter' || e.key === ' '
-      const BACK = e.key === 'Escape' || e.key === 'Backspace'
+      const BACK = e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q'
       if (NEXT)      { e.preventDefault(); setIdx(i => Math.min(i + 1, count - 1)) }
       else if (PREV) { e.preventDefault(); setIdx(i => Math.max(i - 1, 0)) }
       else if (OK)   { e.preventDefault(); onSelect(idx) }
@@ -421,7 +421,7 @@ function Intro3({ onNext, onBack }: { onNext: () => void; onBack?: () => void })
   // Auto-advance or allow skip via keypresses
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Backspace') {
+      if (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q') {
         e.preventDefault()
         onBack?.()
       } else if (['Enter', ' ', 'e', 'E', 'ArrowRight', 'd', 'D'].includes(e.key)) {
@@ -1420,7 +1420,7 @@ export default function PartyScreen({ onClose, hasGroup, onGroupCreated, onSingH
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const BACK = e.key === 'Escape' || e.key === 'Backspace'
+      const BACK = e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q'
       const OK   = e.key === 'e' || e.key === 'E' || e.key === 'Enter'
 
       if (BACK) {

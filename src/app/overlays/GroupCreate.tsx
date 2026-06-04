@@ -43,7 +43,7 @@ export default function GroupCreate({ onBack, onCreated }: Props) {
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Backspace') {
+      if (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q') {
         e.preventDefault()
         onBack()
         return

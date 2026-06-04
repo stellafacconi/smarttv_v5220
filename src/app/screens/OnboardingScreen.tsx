@@ -71,7 +71,7 @@ function useRemote({
       const NEXT = e.key === 'd' || e.key === 'D' || e.key === 's' || e.key === 'S' || e.key === 'ArrowRight' || e.key === 'ArrowDown'
       const PREV = e.key === 'a' || e.key === 'A' || e.key === 'w' || e.key === 'W' || e.key === 'ArrowLeft'  || e.key === 'ArrowUp'
       const OK   = e.key === 'e' || e.key === 'E' || e.key === 'Enter' || e.key === ' '
-      const BACK = e.key === 'Escape' || e.key === 'Backspace'
+      const BACK = e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q'
       if (NEXT)      { e.preventDefault(); setIdx(i => Math.min(i + 1, count - 1)) }
       else if (PREV) { e.preventDefault(); setIdx(i => Math.max(i - 1, 0)) }
       else if (OK)   { e.preventDefault(); onSelect(idx) }
@@ -317,12 +317,23 @@ function IPhone({ heightVh, style }: { heightVh: number; style?: React.CSSProper
 // ─────────────────────────────────────────────────────────────────────────────
 function SplashScreen({ onDone }: { onDone: () => void }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 2400)
-    return () => clearTimeout(t)
+    const handleAction = () => {
+      onDone()
+    }
+    window.addEventListener('keydown', handleAction)
+    window.addEventListener('click', handleAction)
+    return () => {
+      window.removeEventListener('keydown', handleAction)
+      window.removeEventListener('click', handleAction)
+    }
   }, [onDone])
 
   return (
-    <motion.div {...screenAnim} key="splash" style={{ position: 'absolute', inset: 0 }}>
+    <motion.div
+      {...screenAnim}
+      key="splash"
+      style={{ position: 'absolute', inset: 0, cursor: 'pointer' }}
+    >
       <Bg />
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1,
@@ -753,7 +764,7 @@ export function RemoteScreen({ userCount = 3, onDone, onBack }: { userCount?: nu
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Backspace') {
+      if (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q') {
         e.preventDefault()
         onBack?.()
       } else if (['Enter', ' ', 'e', 'E', 'ArrowRight', 'd', 'D'].includes(e.key)) {
@@ -924,7 +935,7 @@ export function TastesScreen({ onDone, onBack }: { onDone: () => void; onBack?: 
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Backspace') {
+      if (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'q' || e.key === 'Q') {
         e.preventDefault()
         onBack?.()
       }

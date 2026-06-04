@@ -47,7 +47,9 @@ export default function GroupHub({ groupName, users, onBack }: Props) {
         case 'ArrowDown':  setFocusRow(r => Math.min(ROWS - 1, r + 1)); break
         case 'ArrowUp':    setFocusRow(r => Math.max(0, r - 1));        break
         case 'Escape':
-        case 'Backspace':  onBack(); break
+        case 'Backspace':
+        case 'q':
+        case 'Q':          onBack(); break
       }
     }
     window.addEventListener('keydown', handler)

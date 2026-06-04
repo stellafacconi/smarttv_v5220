@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import type { RefObject } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import lyricsLrc from '../../../music/lyrics.lrc?raw'
+import { BUNDLED_LYRICS } from '../data/bundledLyrics'
 
 const sfPro = `-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif`
 
@@ -316,10 +317,29 @@ function useItunesSingle(title: string, artist: string) {
 function useLrclib(title: string, artist: string) {
   const [lines, setLines] = useState<LyricLine[] | null>(null)
   useEffect(() => {
-    if (artist?.toLowerCase() === 'lito' || title?.toLowerCase().includes('sacco')) {
+    const t = title?.toLowerCase() ?? ''
+    const a = artist?.toLowerCase() ?? ''
+
+    if (a === 'lito' || t.includes('sacco')) {
       setLines(LITO_LYRICS)
       return
     }
+
+    let bundledKey = ''
+    if (t.includes('360')) bundledKey = '360'
+    else if (t.includes('bando')) bundledKey = 'bando'
+    else if (t.includes('pink') || t.includes('pony') || t.includes('club')) bundledKey = 'pinkpony'
+    else if (t.includes('party')) bundledKey = 'party4u'
+    else if (t.includes('home')) bundledKey = 'home'
+    else if (t.includes('primavera') || t.includes('maledetta')) bundledKey = 'primavera'
+    else if (t.includes('material') || t.includes('girl')) bundledKey = 'materialgirl'
+    else if (t.includes('abnormal') || t.includes('adults') || t.includes('talking') || a.includes('strokes')) bundledKey = 'strokes'
+
+    if (bundledKey && BUNDLED_LYRICS[bundledKey]) {
+      setLines(parseLrc(BUNDLED_LYRICS[bundledKey]))
+      return
+    }
+
     setLines(null)
     const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`
     fetch(url)
@@ -692,7 +712,6 @@ function BottomBar({ showTime, isPlaying, isListOpen, onListClick }: {
         <div style={{ display: 'flex', alignItems: 'center', width: 371 }}>
           <div style={{ display: 'flex', gap: 33, alignItems: 'center' }}>
             <motion.button
-              whileTap={onListClick ? { scale: 0.92 } : undefined}
               onClick={onListClick}
               style={{
                 width: isListOpen ? 70 : 45,
@@ -771,7 +790,6 @@ function SingMemojiGroupPill({ m0, m1, m2, activePlayer, onClick }: {
 
   return (
     <motion.div
-      whileTap={{ scale: onClick ? 0.94 : 1 }}
       onClick={onClick}
       style={{
         display: 'flex',
@@ -1459,13 +1477,11 @@ function GuideScreen({ onContinue }: { onContinue: () => void }) {
       </div>
 
       <motion.button
-        whileTap={{ scale: 0.94 }}
         onClick={() => setConfirmed([true, true, true])}
         style={{
           position: 'absolute',
-          left: 'calc(50% + 0.5px)',
+          left: 888,
           top: 916,
-          transform: 'translateX(-50%)',
           width: 145,
           height: 44,
           borderRadius: 24,
@@ -3024,6 +3040,7 @@ function SingingScreen({
   const [showGuidance, setShowGuidance] = useState(true) // Always start with guidance/tutorial first when entering SingingScreen
   const [countdown, setCountdown] = useState<number | null>(null)
   const [songStarted, setSongStarted] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const startCountdown = () => {
     setCountdown(3)
@@ -3191,6 +3208,16 @@ function SingingScreen({
       setShowSidebar(true)
     }
     else if (targetId === 'bar-list') setShowList(v => !v)
+    else if (targetId === 'bar-play') {
+      const audio = audioRef.current
+      if (audio) {
+        if (audio.paused) {
+          audio.play().catch(() => {})
+        } else {
+          audio.pause()
+        }
+      }
+    }
     else if (targetId === 'list-close') setShowList(false)
     else if (targetId.startsWith('list-row-')) setShowList(false)
     else if (targetId.startsWith('list-up-')) {
@@ -3280,7 +3307,7 @@ function SingingScreen({
         setShowTopBar(false)
         return
       }
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' || e.key === 'q' || e.key === 'Q') {
         if (showSidebar) {
           setShowSidebar(false)
           setSidebarAnchorPlayer(null)
@@ -3314,6 +3341,17 @@ function SingingScreen({
         src={videoPath}
         loop
         playsInline
+        onPlay={() => {
+          console.log('Video started playing:', videoPath)
+          setIsPlaying(true)
+        }}
+        onPause={() => {
+          console.log('Video paused:', videoPath)
+          setIsPlaying(false)
+        }}
+        onPlaying={() => console.log('Video is playing:', videoPath)}
+        onWaiting={() => console.log('Video is waiting/buffering:', videoPath)}
+        onError={(e) => console.error('Video error:', e.currentTarget.error?.message, videoPath)}
         style={{
           position: 'absolute',
           inset: 0,
@@ -3562,7 +3600,7 @@ function SingingScreen({
       }}>
         <BottomBar
           showTime
-          isPlaying
+          isPlaying={isPlaying}
           isListOpen={showList}
           onListClick={() => setShowList(v => !v)}
         />
@@ -3608,6 +3646,12 @@ function SingingScreen({
             key="singing-guidance"
             onContinue={() => {
               setShowGuidance(false)
+              if (audioRef.current) {
+                audioRef.current.play().then(() => {
+                  audioRef.current?.pause()
+                  if (audioRef.current) audioRef.current.currentTime = 0
+                }).catch(() => {})
+              }
               startCountdown()
             }}
           />
@@ -3908,7 +3952,7 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
       transition={{ duration: 0.3 }}
       style={{
         position: 'fixed', inset: 0, zIndex: 60,
-        background: 'rgba(0,0,0,0.6)',
+        background: step === 'singing' ? 'transparent' : 'rgba(0,0,0,0.6)',
         overflow: 'hidden',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
