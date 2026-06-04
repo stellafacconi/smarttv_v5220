@@ -174,14 +174,30 @@ const LYRIC_DURATION = LYRIC_LINES.at(-1)?.time ?? 210
 
 /* ─── Song list ─────────────────────────────────────────── */
 const SONG_LIST = [
-  { title: '360',             artist: 'Charli XCX'        },
-  { title: 'Flowers',         artist: 'Miley Cyrus'       },
-  { title: 'As It Was',       artist: 'Harry Styles'      },
-  { title: 'Anti-Hero',       artist: 'Taylor Swift'      },
-  { title: 'Blinding Lights', artist: 'The Weeknd'        },
-  { title: 'Espresso',        artist: 'Sabrina Carpenter' },
+  { title: '360',                    artist: 'Charli XCX'                       },
+  { title: 'Bando',                  artist: 'ANNA'                             },
+  { title: 'Pink Pony Club',         artist: 'Chappell Roan'                    },
+  { title: 'Party 4 U',              artist: 'Charli XCX'                       },
+  { title: 'Home',                   artist: 'Edward Sharpe & The Magnetic Zeros'},
+  { title: 'Riempioilsacco',         artist: 'LITO'                             },
+  { title: 'Maledetta Primavera',    artist: 'Loretta Goggi'                    },
+  { title: 'Material Girl',          artist: 'Madonna'                          },
+  { title: 'The Adults Are Talking', artist: 'The Strokes'                      },
 ] as const
 type SongEntry = typeof SONG_LIST[number]
+
+// Video backgrounds for the singing screen (served from public/video/)
+const VIDEO_MAP: Partial<Record<string, string>> = {
+  '360':                    '/video/360-official-lyric-video_Media_O_HoOpJ60C0_001_1080p.mp4',
+  'Bando':                  '/video/ANNA-Bando-Lyric-Video_Media_EZ7XGDnkwS0_001_1080p.mp4',
+  'Pink Pony Club':         '/video/Chappell-Roan-Pink-pony-club-Official-Au_Media_vp6XdbG3AhA_001_1080p.mp4',
+  'Party 4 U':              '/video/Charli-XCX-party-4-u-Official-Audio_Media_fKrTCGGEiWY_001_1080p.mp4',
+  'Home':                   '/video/Edward-Sharpe-_-The-Magnetic-Zeros-Home-_Media_DHEOF_rcND8_001_1080p.mp4',
+  'Riempioilsacco':         '/video/LITO-RIEMPIOILSACCO.mp4',
+  'Maledetta Primavera':    '/video/Loretta-Goggi-Maledetta-Primavera_Media_p_Yi23DTg0U_001_1080p.mp4',
+  'Material Girl':          '/video/Madonna-Material-Girl-Official-Video-HD_Media_6p-lDYPR2P8_001_1080p.mp4',
+  'The Adults Are Talking': '/video/The-Strokes-The-Adults-Are-Talking-Offic_Media_o4qsjmLxhow_001_1080p.mp4',
+}
 
 type ItunesTrack = { artwork: string | null; previewUrl: string | null; trackName: string | null; artistName: string | null; trackTimeSec: number | null }
 
@@ -296,7 +312,7 @@ function findActiveLyricIndex(lines: LyricLine[], currentTime: number) {
   return active
 }
 
-function useSyncedLyricTime(audioRef: RefObject<HTMLAudioElement | null>, enabled = true) {
+function useSyncedLyricTime(audioRef: RefObject<HTMLMediaElement | null>, enabled = true) {
   const [currentTime, setCurrentTime] = useState(0)
   const startRef = useRef<number | null>(null)
 
@@ -327,7 +343,7 @@ function SyncedLyrics({
   compact = false,
   lyricLines,
 }: {
-  audioRef: RefObject<HTMLAudioElement | null>
+  audioRef: RefObject<HTMLMediaElement | null>
   compact?: boolean
   lyricLines?: LyricLine[] | null
 }) {
@@ -545,14 +561,15 @@ function MultiUserTouchFrames({ targets, positions, active }: {
         const touch = PLAYER_TOUCHES[player]
         return (
           <motion.div
-            key={player}
-            initial={false}
-            animate={{ x: target.left - pad, y: target.top - pad }}
-            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+            key={`${player}-${id}`}
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.88 }}
+            transition={{ duration: 0.14 }}
             style={{
               position: 'absolute',
-              left: 0,
-              top: 0,
+              left: target.left - pad,
+              top: target.top - pad,
               width: target.width + pad * 2,
               height: target.height + pad * 2,
               borderRadius: target.radius === 999 ? 999 : target.radius + pad,
@@ -2931,19 +2948,21 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
 }
 
 /* ─── Singing Screen ─────────────────────────────────────── */
-function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricLines, previewUrl, songTitle, songArtist, artworkUrl }: {
+function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricLines, previewUrl, videoSrc, songTitle, songArtist, artworkUrl }: {
   onFinish: () => void
   onBack: () => void
   showGuidanceInitially?: boolean
   lyricLines?: LyricLine[] | null
   previewUrl?: string | null
+  videoSrc?: string | null
   songTitle?: string
   songArtist?: string
   artworkUrl?: string | null
 }) {
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioRef  = useRef<HTMLMediaElement | null>(null)
   const finishRef = useRef(onFinish)
   finishRef.current = onFinish
+  const waitingForGuideRef = useRef(showGuidanceInitially) // true = hold audio until guide dismissed
   const [showSidebar, setShowSidebar] = useState(false)
   const [sidebarAnchorPlayer, setSidebarAnchorPlayer] = useState<PlayerId | null>(null)
   const [showList, setShowList] = useState(false)
@@ -2957,6 +2976,22 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
   const [topBarFocus, setTopBarFocus] = useState<'sing' | 'browser'>('sing')
   const [browserLyricsMode, setBrowserLyricsMode] = useState(false)
   const [showGuidance, setShowGuidance] = useState(showGuidanceInitially)
+
+  // If guide was showing on mount, pause audio immediately and play only when guide is dismissed
+  useEffect(() => {
+    if (!showGuidanceInitially) return
+    const audio = audioRef.current
+    if (audio) { audio.pause(); audio.currentTime = 0 }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!waitingForGuideRef.current) return
+    if (!showGuidance) {
+      waitingForGuideRef.current = false
+      audioRef.current?.play().catch(() => {})
+    }
+  }, [showGuidance])
+
   const [emojiPickerPlayer, setEmojiPickerPlayer] = useState<PlayerId | null>(null)
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; x: number; fontSize: number; rotate: number; blur: number; opacity: number; delay: number }[]>([])
   const singingTargets: TouchTarget[] = [
@@ -3221,15 +3256,34 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
       }}
       style={{ position: 'absolute', inset: 0 }}
     >
-      <audio ref={audioRef} src={previewUrl ?? undefined} aria-hidden="true" preload="auto" autoPlay loop style={{ display: 'none' }} />
+      {/* Audio: use video file (with its audio track) if available, else fall back to iTunes 30s preview */}
+      {videoSrc
+        ? <video
+            ref={el => { audioRef.current = el }}
+            src={videoSrc} autoPlay loop playsInline
+            aria-hidden="true" preload="auto"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+          />
+        : <audio
+            ref={el => { audioRef.current = el }}
+            src={previewUrl ?? undefined} aria-hidden="true" preload="auto" autoPlay loop style={{ display: 'none' }}
+          />
+      }
 
-      {/* Background glows */}
+      {/* Dark overlay on top of video so UI stays readable */}
+      {videoSrc && (
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.48)', zIndex: 1, pointerEvents: 'none' }} />
+      )}
+
+      {/* Background glows (shown only when no video) */}
+      {!videoSrc && <>
       <div style={{ position: 'absolute', left: -157, top: 1058, width: 2210, height: 715, overflow: 'hidden', transform: 'rotate(180deg)', zIndex: 0 }}>
         <img src={sEllipse161} alt="" style={{ position: 'absolute', inset: '-27.23% -8.81%', width: '100%', height: '100%', display: 'block' }} />
       </div>
       <div style={{ position: 'absolute', left: -157, top: -207, width: 2210, height: 207, overflow: 'hidden', transform: 'rotate(180deg)', zIndex: 0 }}>
         <img src={sEllipse160} alt="" style={{ position: 'absolute', inset: '-94.06% -8.81%', width: '100%', height: '100%', display: 'block' }} />
       </div>
+      </>}
 
       {/* Next Song badges at top center */}
       {/* Small (Variant2) - behind, top: 73 */}
@@ -3802,6 +3856,7 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
             showGuidanceInitially={startsWithSingingGuidance}
             lyricLines={lyricLines}
             previewUrl={currentTrack?.previewUrl}
+            videoSrc={VIDEO_MAP[activeSong.title] ?? null}
             songTitle={activeSong.title}
             songArtist={activeSong.artist}
             artworkUrl={currentTrack?.artwork}

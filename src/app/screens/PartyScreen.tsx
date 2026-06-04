@@ -632,13 +632,14 @@ function SelectionHalo({ player, confirmed, x, y, size }: { player: number; conf
   const color = avatar.touchColor
   return (
     <motion.div
-      initial={false}
-      animate={{ x, y, scale: confirmed ? 1.05 : 1 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+      initial={{ opacity: 0, scale: 0.88 }}
+      animate={{ opacity: 1, scale: confirmed ? 1.05 : 1 }}
+      exit={{ opacity: 0, scale: 0.88 }}
+      transition={{ duration: 0.14 }}
       style={{
         position: 'absolute',
-        left: 0,
-        top: 0,
+        left: x,
+        top: y,
         width: size,
         height: size,
         borderRadius: 999,
@@ -675,13 +676,14 @@ function SelectionTouchFrame({
   const color = avatar.touchColor
   return (
     <motion.div
-      initial={false}
-      animate={{ x, y, scale: confirmed ? 1.04 : 1 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+      initial={{ opacity: 0, scale: 0.88 }}
+      animate={{ opacity: 1, scale: confirmed ? 1.04 : 1 }}
+      exit={{ opacity: 0, scale: 0.88 }}
+      transition={{ duration: 0.14 }}
       style={{
         position: 'absolute',
-        left: 0,
-        top: 0,
+        left: x,
+        top: y,
         width,
         height,
         borderRadius: radius,
@@ -1007,36 +1009,38 @@ function PartyHome({ onSing }: { onSing: () => void }) {
             />
           )
         })}
-        {positions.map((target, player) => {
-          if (!active[player]) return null
-          if (target === 'randomize') {
-            const pad = 3 + player * 4
+        <AnimatePresence>
+          {positions.map((target, player) => {
+            if (!active[player]) return null
+            if (target === 'randomize') {
+              const pad = 3 + player * 4
+              return (
+                <SelectionTouchFrame
+                  key={`${player}-${target}`}
+                  player={player}
+                  confirmed={confirmed[player]}
+                  x={randomizeTarget.left - pad}
+                  y={randomizeTarget.top - pad}
+                  width={randomizeTarget.width + pad * 2}
+                  height={randomizeTarget.height + pad * 2}
+                  radius={randomizeTarget.radius + pad}
+                />
+              )
+            }
+            const option = PARTY_TARGETS[targetIndex[target]]
+            const size = 165 + player * 16
             return (
-              <SelectionTouchFrame
-                key={player}
+              <SelectionHalo
+                key={`${player}-${target}`}
                 player={player}
                 confirmed={confirmed[player]}
-                x={randomizeTarget.left - pad}
-                y={randomizeTarget.top - pad}
-                width={randomizeTarget.width + pad * 2}
-                height={randomizeTarget.height + pad * 2}
-                radius={randomizeTarget.radius + pad}
+                size={size}
+                x={option.left + 84.5 - size / 2}
+                y={option.top + 77 - size / 2}
               />
             )
-          }
-          const option = PARTY_TARGETS[targetIndex[target]]
-          const size = 165 + player * 16
-          return (
-            <SelectionHalo
-              key={player}
-              player={player}
-              confirmed={confirmed[player]}
-              size={size}
-              x={option.left + 84.5 - size / 2}
-              y={option.top + 77 - size / 2}
-            />
-          )
-        })}
+          })}
+        </AnimatePresence>
         {countdown !== null && (
           (() => {
             const option = consensusTarget ? PARTY_TARGETS[targetIndex[consensusTarget]] : PARTY_TARGETS[targetIndex.sing]
@@ -1068,23 +1072,6 @@ function PartyHome({ onSing }: { onSing: () => void }) {
           })()
         )}
       </motion.div>
-      <div style={{
-        position: 'absolute',
-        right: 60,
-        bottom: 54,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
-        color: 'rgba(255,255,255,0.36)',
-        fontFamily: sfPro,
-        fontSize: 13,
-        textAlign: 'right',
-        pointerEvents: 'none',
-      }}>
-        {PLAYER_AVATARS.map((p, i) => (
-          <span key={p.keys} style={{ opacity: active[i] ? 1 : 0.35 }}>{p.keys} · exit {p.exit}</span>
-        ))}
-      </div>
       <RandomizeButton onClick={() => startDecision('sing')} />
     </div>
   )
@@ -1356,23 +1343,25 @@ function PartySing({ onBack, onSingNow }: { onBack: () => void; onSingNow?: (tar
             />
           )
         })}
-        {positions.map((target, player) => {
-          if (!active[player]) return null
-          const option = SING_TARGETS[singTargetIndex[target]]
-          const inset = target === 'randomize' ? -(3 + player * 4) : -8 - player * 7
-          return (
-            <SelectionTouchFrame
-              key={player}
-              player={player}
-              confirmed={consensusTarget === target}
-              width={option.width - inset * 2}
-              height={option.height - inset * 2}
-              radius={option.radius === 999 ? 999 : option.radius - inset}
-              x={option.left + inset}
-              y={option.top + inset}
-            />
-          )
-        })}
+        <AnimatePresence>
+          {positions.map((target, player) => {
+            if (!active[player]) return null
+            const option = SING_TARGETS[singTargetIndex[target]]
+            const inset = target === 'randomize' ? -(3 + player * 4) : -8 - player * 7
+            return (
+              <SelectionTouchFrame
+                key={`${player}-${target}`}
+                player={player}
+                confirmed={consensusTarget === target}
+                width={option.width - inset * 2}
+                height={option.height - inset * 2}
+                radius={option.radius === 999 ? 999 : option.radius - inset}
+                x={option.left + inset}
+                y={option.top + inset}
+              />
+            )
+          })}
+        </AnimatePresence>
         {countdown !== null && (
           (() => {
             const option = consensusTarget ? SING_TARGETS[singTargetIndex[consensusTarget]] : SING_TARGETS[1]
