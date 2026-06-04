@@ -28,7 +28,7 @@ const IMG_RING_INNER = 'https://www.figma.com/api/mcp/asset/30ffdbaf-9bac-4af1-b
 // ─── types ────────────────────────────────────────────────────────────────────
 export type Step = 'splash' | 'choose' | 'create' | 'setup' | 'remote' | 'tastes'
 interface Props {
-  onComplete: () => void
+  onComplete: (profileId?: string) => void
   onCreateGroup?: () => void
   initialStep?: Step
   onStepChange?: (step: Step) => void
@@ -576,14 +576,31 @@ function CreateScreen({ onSingle, onGroup, onBack }: {
                 initial={{ opacity: 0, x: 24 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.15 + i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: 169 }}
+                style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, width: SZ }}
               >
-                {/* Circle with white glow on focus */}
+                {/* ── Selection card — fades in behind icon+label ── */}
                 <motion.div
-                  animate={{ filter: focused ? 'drop-shadow(0 4px 32px rgba(255,255,255,0.45))' : 'none' }}
-                  transition={{ duration: 0.25 }}
-                  style={{ width: SZ, height: SZ, flexShrink: 0 }}
-                >
+                  animate={{ opacity: focused ? 1 : 0, scale: focused ? 1 : 0.92 }}
+                  transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  style={{
+                    position: 'absolute',
+                    top: 'clamp(-18px, -1.67vw, -26px)',
+                    left: 'clamp(-14px, -1.3vw, -20px)',
+                    right: 'clamp(-14px, -1.3vw, -20px)',
+                    bottom: 'clamp(-18px, -1.67vw, -26px)',
+                    borderRadius: 'clamp(22px, 2.3vw, 30px)',
+                    background: 'rgba(255,255,255,0.10)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.14)',
+                    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.22)',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                  }}
+                />
+
+                {/* Circle icon */}
+                <div style={{ position: 'relative', zIndex: 1, width: SZ, height: SZ, flexShrink: 0 }}>
                   <GlassCircle focused={false} onClick={handlers[i]} style={{ width: '100%', height: '100%' }}>
                     <span style={{
                       fontFamily: sfPro, fontSize: 'clamp(22px, 2.56vw, 49px)',
@@ -592,8 +609,11 @@ function CreateScreen({ onSingle, onGroup, onBack }: {
                       {opt.sym}
                     </span>
                   </GlassCircle>
-                </motion.div>
-                <Pill label={opt.label} variant="label" focused={focused} onClick={handlers[i]} />
+                </div>
+
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <Pill label={opt.label} variant="label" focused={focused} onClick={handlers[i]} />
+                </div>
               </motion.div>
             )
           })}
@@ -1020,7 +1040,7 @@ export default function OnboardingScreen({ onComplete, onCreateGroup, initialSte
         )}
         {step === 'choose' && (
           <ChooseScreen
-            onSelect={() => onComplete()}
+            onSelect={(id) => onComplete(id)}
             onAddNew={() => setStep('create')} />
         )}
         {step === 'create' && (

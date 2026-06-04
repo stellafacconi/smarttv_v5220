@@ -152,7 +152,7 @@ function Button({ children, primary, onClick, style }: {
   return (
     <motion.button
       tabIndex={onClick ? 0 : -1}
-
+      whileTap={onClick ? { scale: 0.97 } : undefined}
       onClick={onClick}
       style={{
         height: 44,
@@ -632,14 +632,13 @@ function SelectionHalo({ player, confirmed, x, y, size }: { player: number; conf
   const color = avatar.touchColor
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.88 }}
-      animate={{ opacity: 1, scale: confirmed ? 1.05 : 1 }}
-      exit={{ opacity: 0, scale: 0.88 }}
-      transition={{ duration: 0.14 }}
+      initial={false}
+      animate={{ x, y, scale: confirmed ? 1.05 : 1 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
       style={{
         position: 'absolute',
-        left: x,
-        top: y,
+        left: 0,
+        top: 0,
         width: size,
         height: size,
         borderRadius: 999,
@@ -676,14 +675,13 @@ function SelectionTouchFrame({
   const color = avatar.touchColor
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.88 }}
-      animate={{ opacity: 1, scale: confirmed ? 1.04 : 1 }}
-      exit={{ opacity: 0, scale: 0.88 }}
-      transition={{ duration: 0.14 }}
+      initial={false}
+      animate={{ x, y, scale: confirmed ? 1.04 : 1 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 32 }}
       style={{
         position: 'absolute',
-        left: x,
-        top: y,
+        left: 0,
+        top: 0,
         width,
         height,
         borderRadius: radius,
@@ -726,7 +724,7 @@ function PartyOption({
     <motion.div
       animate={{ scale: consensus ? 1.28 : 1 }}
       transition={{ type: 'spring', stiffness: 180, damping: 20 }}
-
+      whileTap={onClick ? { scale: 0.96 } : undefined}
       onClick={onClick}
       style={{
         position: 'absolute',
@@ -788,9 +786,9 @@ function PartyOption({
 function RandomizeButton({ onClick }: { onClick?: () => void }) {
   return (
     <motion.button
-
+      whileTap={{ scale: 0.96 }}
       onClick={onClick}
-      style={{ position: 'absolute', left: '50%', top: 916, transform: 'translateX(-50%)', width: 154, height: 44, border: 'none', borderRadius: 24, padding: '8px 22px', background: 'rgba(255,255,255,0.9)', color: '#131111', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 0 70.9px 6.966px rgba(255,255,255,0.2)', fontFamily: sfCompact, fontSize: 17, fontWeight: 600, letterSpacing: 0.68, cursor: 'pointer', boxSizing: 'border-box' }}
+      style={{ position: 'absolute', left: 883, top: 916, width: 154, height: 44, border: 'none', borderRadius: 24, padding: '8px 22px', background: 'rgba(255,255,255,0.9)', color: '#131111', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 0 70.9px 6.966px rgba(255,255,255,0.2)', fontFamily: sfCompact, fontSize: 17, fontWeight: 600, letterSpacing: 0.68, cursor: 'pointer', boxSizing: 'border-box' }}
     >
       <span>{SF.random}</span>
       <span>Randomize</span>
@@ -1009,38 +1007,36 @@ function PartyHome({ onSing }: { onSing: () => void }) {
             />
           )
         })}
-        <AnimatePresence>
-          {positions.map((target, player) => {
-            if (!active[player]) return null
-            if (target === 'randomize') {
-              const pad = 3 + player * 4
-              return (
-                <SelectionTouchFrame
-                  key={`${player}-${target}`}
-                  player={player}
-                  confirmed={confirmed[player]}
-                  x={randomizeTarget.left - pad}
-                  y={randomizeTarget.top - pad}
-                  width={randomizeTarget.width + pad * 2}
-                  height={randomizeTarget.height + pad * 2}
-                  radius={randomizeTarget.radius + pad}
-                />
-              )
-            }
-            const option = PARTY_TARGETS[targetIndex[target]]
-            const size = 165 + player * 16
+        {positions.map((target, player) => {
+          if (!active[player]) return null
+          if (target === 'randomize') {
+            const pad = 3 + player * 4
             return (
-              <SelectionHalo
-                key={`${player}-${target}`}
+              <SelectionTouchFrame
+                key={player}
                 player={player}
                 confirmed={confirmed[player]}
-                size={size}
-                x={option.left + 84.5 - size / 2}
-                y={option.top + 77 - size / 2}
+                x={randomizeTarget.left - pad}
+                y={randomizeTarget.top - pad}
+                width={randomizeTarget.width + pad * 2}
+                height={randomizeTarget.height + pad * 2}
+                radius={randomizeTarget.radius + pad}
               />
             )
-          })}
-        </AnimatePresence>
+          }
+          const option = PARTY_TARGETS[targetIndex[target]]
+          const size = 165 + player * 16
+          return (
+            <SelectionHalo
+              key={player}
+              player={player}
+              confirmed={confirmed[player]}
+              size={size}
+              x={option.left + 84.5 - size / 2}
+              y={option.top + 77 - size / 2}
+            />
+          )
+        })}
         {countdown !== null && (
           (() => {
             const option = consensusTarget ? PARTY_TARGETS[targetIndex[consensusTarget]] : PARTY_TARGETS[targetIndex.sing]
@@ -1072,6 +1068,23 @@ function PartyHome({ onSing }: { onSing: () => void }) {
           })()
         )}
       </motion.div>
+      <div style={{
+        position: 'absolute',
+        right: 60,
+        bottom: 54,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        color: 'rgba(255,255,255,0.36)',
+        fontFamily: sfPro,
+        fontSize: 13,
+        textAlign: 'right',
+        pointerEvents: 'none',
+      }}>
+        {PLAYER_AVATARS.map((p, i) => (
+          <span key={p.keys} style={{ opacity: active[i] ? 1 : 0.35 }}>{p.keys} · exit {p.exit}</span>
+        ))}
+      </div>
       <RandomizeButton onClick={() => startDecision('sing')} />
     </div>
   )
@@ -1079,7 +1092,7 @@ function PartyHome({ onSing }: { onSing: () => void }) {
 
 const singCards = [
   { src: ASSETS.albumBando, title: 'Bando', artist: 'Anna Pepe', left: 324, top: 128 },
-  { src: ASSETS.albumAbnormal, title: 'The Adults Are Talking', artist: 'The Strokes', left: 595, top: 215 },
+  { src: ASSETS.albumAbnormal, title: 'The New Abnormal', artist: 'The Strokes', left: 595, top: 215 },
   { src: ASSETS.albumParty, title: 'Party 4 u', artist: 'Charli XCX', left: 1122, top: 121 },
   { src: ASSETS.albumMaterial, title: 'Material Girl', artist: 'Madonna', left: 1534, top: 201 },
   { src: ASSETS.albumHome, title: 'Home', artist: 'Edward Sharpe', left: 224, top: 550 },
@@ -1115,7 +1128,7 @@ function AlbumCard({ card, selected, consensus, onClick }: { card: typeof singCa
     <motion.div
       animate={{ scale: consensus ? 1.18 : 1 }}
       transition={{ type: 'spring', stiffness: 180, damping: 20 }}
-
+      whileTap={onClick ? { scale: 0.96 } : undefined}
       onClick={onClick}
       style={{ position: 'absolute', left: card.left, top: card.top, width: 210, display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', cursor: onClick ? 'pointer' : 'default', zIndex: consensus ? 18 : 5 }}
     >
@@ -1145,7 +1158,7 @@ function AlbumCard({ card, selected, consensus, onClick }: { card: typeof singCa
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
     <motion.button
-
+      whileTap={{ scale: 0.96 }}
       onClick={onClick}
       style={{ position: 'absolute', left: 104, top: 93, height: 44, border: 'none', borderRadius: 24, padding: '8px 22px', display: 'flex', gap: 8, alignItems: 'center', background: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(67.955px)', fontFamily: sfCompact, fontSize: 17, fontWeight: 600, letterSpacing: 0.68, cursor: 'pointer' }}
     >
@@ -1343,25 +1356,23 @@ function PartySing({ onBack, onSingNow }: { onBack: () => void; onSingNow?: (tar
             />
           )
         })}
-        <AnimatePresence>
-          {positions.map((target, player) => {
-            if (!active[player]) return null
-            const option = SING_TARGETS[singTargetIndex[target]]
-            const inset = target === 'randomize' ? -(3 + player * 4) : -8 - player * 7
-            return (
-              <SelectionTouchFrame
-                key={`${player}-${target}`}
-                player={player}
-                confirmed={consensusTarget === target}
-                width={option.width - inset * 2}
-                height={option.height - inset * 2}
-                radius={option.radius === 999 ? 999 : option.radius - inset}
-                x={option.left + inset}
-                y={option.top + inset}
-              />
-            )
-          })}
-        </AnimatePresence>
+        {positions.map((target, player) => {
+          if (!active[player]) return null
+          const option = SING_TARGETS[singTargetIndex[target]]
+          const inset = target === 'randomize' ? -(3 + player * 4) : -8 - player * 7
+          return (
+            <SelectionTouchFrame
+              key={player}
+              player={player}
+              confirmed={consensusTarget === target}
+              width={option.width - inset * 2}
+              height={option.height - inset * 2}
+              radius={option.radius === 999 ? 999 : option.radius - inset}
+              x={option.left + inset}
+              y={option.top + inset}
+            />
+          )
+        })}
         {countdown !== null && (
           (() => {
             const option = consensusTarget ? SING_TARGETS[singTargetIndex[consensusTarget]] : SING_TARGETS[1]

@@ -30,7 +30,7 @@ const DEFAULT_PROFILES: Profile[] = [
   { id: 'p1', name: 'Marco',  color: '#ff375f', type: 'single' },
   { id: 'p2', name: 'Chiara', color: '#0a84ff', type: 'single' },
   {
-    id: 'g1', name: 'Gruppo', color: '#ff375f', type: 'group',
+    id: 'g1', name: 'Family', color: '#ff375f', type: 'group',
     members: [{ color: '#ff375f' }, { color: '#0a84ff' }],
   },
 ]
@@ -62,7 +62,6 @@ export default function App() {
     setActiveGroupId(p.id)
     setGroupName(p.name)
     setIsNewGroup(false)   // existing group → skip intro
-    setPartyBackTarget('HOME')
     setScreen('PARTY')
   }
 
@@ -123,7 +122,15 @@ export default function App() {
         <OnboardingScreen
           initialStep={onboardingStep}
           onStepChange={setOnboardingStep}
-          onComplete={() => setScreen('HOME')}
+          onComplete={(profileId) => {
+            if (profileId === 'family') {
+              setActiveGroupId('g1')
+              setGroupName('Family')
+              setScreen('GROUP_HUB')
+            } else {
+              setScreen('HOME')
+            }
+          }}
           onCreateGroup={() => {
             setPartyBackTarget('ONBOARDING')
             handleStartPartyGroupCreation()

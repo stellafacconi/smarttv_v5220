@@ -5,6 +5,25 @@ import lyricsLrc from '../../../music/lyrics.lrc?raw'
 
 const sfPro = `-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif`
 
+function getSongVideoPath(title?: string): string {
+  const t = title?.toLowerCase() ?? ''
+  if (t.includes('360')) return '/CANZONI/360-official-lyric-video_Media_O_HoOpJ60C0_001_1080p.mp4'
+  if (t.includes('bando')) return '/CANZONI/ANNA-Bando-Lyric-Video_Media_EZ7XGDnkwS0_001_1080p.mp4'
+  if (t.includes('pink') || t.includes('pony') || t.includes('club')) return '/CANZONI/Chappell-Roan-Pink-pony-club-Official-Au_Media_vp6XdbG3AhA_001_1080p.mp4'
+  if (t.includes('party')) return '/CANZONI/Charli-XCX-party-4-u-Official-Audio_Media_fKrTCGGEiWY_001_1080p.mp4'
+  if (t.includes('home')) return '/CANZONI/Edward-Sharpe-_-The-Magnetic-Zeros-Home-_Media_DHEOF_rcND8_001_1080p.mp4'
+  if (t.includes('sacco') || t.includes('lito')) return '/CANZONI/LITO-RIEMPIOILSACCO.mp4'
+  if (t.includes('primavera') || t.includes('maledetta')) return '/CANZONI/Loretta-Goggi-Maledetta-Primavera_Media_p_Yi23DTg0U_001_1080p.mp4'
+  if (t.includes('material') || t.includes('girl')) return '/CANZONI/Madonna-Material-Girl-Official-Video-HD_Media_6p-lDYPR2P8_001_1080p.mp4'
+  if (t.includes('abnormal') || t.includes('adults') || t.includes('talking')) return '/CANZONI/The-Strokes-The-Adults-Are-Talking-Offic_Media_o4qsjmLxhow_001_1080p.mp4'
+  
+  // Default fallbacks from public/video/
+  if (t.includes('doja') || t.includes('cat')) return '/video/DojaCat-Video.mp4'
+  if (t.includes('dragon') || t.includes('hotd') || t.includes('house')) return '/video/HOTTD.mp4'
+  if (t.includes('crossy') || t.includes('road')) return '/video/Crossy- Video.mp4'
+  return '/video/DojaCat-Video.mp4'
+}
+
 /* ─── Figma asset URLs ─────────────────────────────────── */
 
 // Browser screen (125:1456)
@@ -172,32 +191,33 @@ function parseLrc(raw: string): LyricLine[] {
 const LYRIC_LINES = parseLrc(lyricsLrc)
 const LYRIC_DURATION = LYRIC_LINES.at(-1)?.time ?? 210
 
+const LITO_LYRICS: LyricLine[] = [
+  { time: 0, text: "Yeah", raw: "[00:00.00] Yeah" },
+  { time: 1.5, text: "Hahaha", raw: "[00:01.50] Hahaha" },
+  { time: 3, text: "Mi ricordo bene come mi guardavi dall'up al down", raw: "[00:03.00] Mi ricordo bene come mi guardavi dall'up al down" },
+  { time: 7.5, text: "Ora siamo qui con un altro sound", raw: "[00:07.50] Ora siamo qui con un altro sound" },
+  { time: 11, text: "Riempio il sacco e me ne vado via", raw: "[00:11.00] Riempio il sacco e me ne vado via" },
+  { time: 14.5, text: "Questa notte è nostra, è pura magia", raw: "[00:14.50] Questa notte è nostra, è pura magia" },
+  { time: 18, text: "Yeah, non mi fermo più", raw: "[00:18.00] Yeah, non mi fermo più" },
+  { time: 21.5, text: "Non dirmi di no, guarda all'insù", raw: "[00:21.50] Non dirmi di no, guarda all'insù" },
+  { time: 25, text: "E le luci della città ci guardano", raw: "[00:25.00] E le luci della città ci guardano" },
+  { time: 28.5, text: "Tutti i ricordi piano sbiadiscono", raw: "[00:28.50] Tutti i ricordi piano sbiadiscono" },
+  { time: 32, text: "Ma io ho il mio sacco ed è pieno di noi", raw: "[00:32.00] Ma io ho il mio sacco ed è pieno di noi" },
+  { time: 35.5, text: "Corriamo forte, sì, come veri eroi", raw: "[00:35.50] Corriamo forte, sì, come veri eroi" },
+  { time: 39, text: "Yeah, dall'up al down", raw: "[00:39.00] Yeah, dall'up al down" },
+  { time: 42.5, text: "Sempre forti, con questo sound", raw: "[00:42.50] Sempre forti, con questo sound" },
+]
+
 /* ─── Song list ─────────────────────────────────────────── */
 const SONG_LIST = [
-  { title: '360',                    artist: 'Charli XCX'                       },
-  { title: 'Bando',                  artist: 'ANNA'                             },
-  { title: 'Pink Pony Club',         artist: 'Chappell Roan'                    },
-  { title: 'Party 4 U',              artist: 'Charli XCX'                       },
-  { title: 'Home',                   artist: 'Edward Sharpe & The Magnetic Zeros'},
-  { title: 'Riempioilsacco',         artist: 'LITO'                             },
-  { title: 'Maledetta Primavera',    artist: 'Loretta Goggi'                    },
-  { title: 'Material Girl',          artist: 'Madonna'                          },
-  { title: 'The Adults Are Talking', artist: 'The Strokes'                      },
+  { title: '360',             artist: 'Charli XCX'        },
+  { title: 'Flowers',         artist: 'Miley Cyrus'       },
+  { title: 'As It Was',       artist: 'Harry Styles'      },
+  { title: 'Anti-Hero',       artist: 'Taylor Swift'      },
+  { title: 'Blinding Lights', artist: 'The Weeknd'        },
+  { title: 'Espresso',        artist: 'Sabrina Carpenter' },
 ] as const
 type SongEntry = typeof SONG_LIST[number]
-
-// Video backgrounds for the singing screen (served from public/video/)
-const VIDEO_MAP: Partial<Record<string, string>> = {
-  '360':                    '/video/360-official-lyric-video_Media_O_HoOpJ60C0_001_1080p.mp4',
-  'Bando':                  '/video/ANNA-Bando-Lyric-Video_Media_EZ7XGDnkwS0_001_1080p.mp4',
-  'Pink Pony Club':         '/video/Chappell-Roan-Pink-pony-club-Official-Au_Media_vp6XdbG3AhA_001_1080p.mp4',
-  'Party 4 U':              '/video/Charli-XCX-party-4-u-Official-Audio_Media_fKrTCGGEiWY_001_1080p.mp4',
-  'Home':                   '/video/Edward-Sharpe-_-The-Magnetic-Zeros-Home-_Media_DHEOF_rcND8_001_1080p.mp4',
-  'Riempioilsacco':         '/video/LITO-RIEMPIOILSACCO.mp4',
-  'Maledetta Primavera':    '/video/Loretta-Goggi-Maledetta-Primavera_Media_p_Yi23DTg0U_001_1080p.mp4',
-  'Material Girl':          '/video/Madonna-Material-Girl-Official-Video-HD_Media_6p-lDYPR2P8_001_1080p.mp4',
-  'The Adults Are Talking': '/video/The-Strokes-The-Adults-Are-Talking-Offic_Media_o4qsjmLxhow_001_1080p.mp4',
-}
 
 type ItunesTrack = { artwork: string | null; previewUrl: string | null; trackName: string | null; artistName: string | null; trackTimeSec: number | null }
 
@@ -263,6 +283,16 @@ function useItunesSingle(title: string, artist: string) {
   const [track, setTrack] = useState<ItunesTrack>({ artwork: null, previewUrl: null, trackName: null, artistName: null, trackTimeSec: null })
   useEffect(() => {
     if (!title) return
+    if (artist?.toLowerCase() === 'lito' || title?.toLowerCase().includes('sacco')) {
+      setTrack({
+        artwork: 'https://www.figma.com/api/mcp/asset/bef0c2f0-6f0f-4bdb-adc1-4839271d8f2d',
+        previewUrl: null,
+        trackName: 'Riempio il sacco',
+        artistName: 'Lito',
+        trackTimeSec: 60,
+      })
+      return
+    }
     setTrack({ artwork: null, previewUrl: null, trackName: null, artistName: null, trackTimeSec: null })
     const q = encodeURIComponent(`${title} ${artist}`)
     fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=10&country=us`)
@@ -286,6 +316,10 @@ function useItunesSingle(title: string, artist: string) {
 function useLrclib(title: string, artist: string) {
   const [lines, setLines] = useState<LyricLine[] | null>(null)
   useEffect(() => {
+    if (artist?.toLowerCase() === 'lito' || title?.toLowerCase().includes('sacco')) {
+      setLines(LITO_LYRICS)
+      return
+    }
     setLines(null)
     const url = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`
     fetch(url)
@@ -314,78 +348,25 @@ function findActiveLyricIndex(lines: LyricLine[], currentTime: number) {
 
 function useSyncedLyricTime(audioRef: RefObject<HTMLMediaElement | null>, enabled = true) {
   const [currentTime, setCurrentTime] = useState(0)
+  const startRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!enabled) return
-
-    // Primary: sync from media element via timeupdate (fires every ~250ms) +
-    //          RAF for smooth interpolation between timeupdate events
     let raf = 0
-    let lastMediaTime = -1
-    let lastRafNow = 0
-
-    const sync = () => {
-      const media = audioRef.current
-      if (media && media.readyState >= 1 && Number.isFinite(media.duration)) {
-        setCurrentTime(media.currentTime)
-        lastMediaTime = media.currentTime
-        lastRafNow = performance.now()
+    const tick = (now: number) => {
+      const audio = audioRef.current
+      const hasRealAudio = audio && audio.readyState > 0 && Number.isFinite(audio.duration) && audio.duration > 0
+      if (hasRealAudio) {
+        setCurrentTime(audio.currentTime)
+      } else {
+        if (startRef.current === null) startRef.current = now
+        const elapsed = ((now - startRef.current) / 1000) % Math.max(LYRIC_DURATION + 4, 1)
+        setCurrentTime(elapsed)
       }
+      raf = window.requestAnimationFrame(tick)
     }
-
-    // timeupdate gives us real positions every ~250ms
-    const onTimeUpdate = () => sync()
-    const onPlay       = () => sync()
-    const onSeeked     = () => sync()
-
-    // Also poll via RAF so lyrics animate smoothly between timeupdate events
-    const tick = () => {
-      const media = audioRef.current
-      if (media && !media.paused && lastMediaTime >= 0) {
-        const elapsed = (performance.now() - lastRafNow) / 1000
-        setCurrentTime(lastMediaTime + elapsed)
-      }
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-
-    // Attach events as soon as we can — or wait for the element to mount
-    const attach = () => {
-      const media = audioRef.current
-      if (!media) return false
-      media.addEventListener('timeupdate', onTimeUpdate)
-      media.addEventListener('play',       onPlay)
-      media.addEventListener('seeked',     onSeeked)
-      sync() // grab current time immediately
-      return true
-    }
-
-    if (!attach()) {
-      // Element not yet mounted — retry a few times
-      const tries = [50, 150, 300, 600].map(ms =>
-        setTimeout(() => attach(), ms)
-      )
-      return () => {
-        tries.forEach(clearTimeout)
-        cancelAnimationFrame(raf)
-        const media = audioRef.current
-        if (media) {
-          media.removeEventListener('timeupdate', onTimeUpdate)
-          media.removeEventListener('play',       onPlay)
-          media.removeEventListener('seeked',     onSeeked)
-        }
-      }
-    }
-
-    return () => {
-      cancelAnimationFrame(raf)
-      const media = audioRef.current
-      if (media) {
-        media.removeEventListener('timeupdate', onTimeUpdate)
-        media.removeEventListener('play',       onPlay)
-        media.removeEventListener('seeked',     onSeeked)
-      }
-    }
+    raf = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(raf)
   }, [audioRef, enabled])
 
   return currentTime
@@ -395,15 +376,17 @@ function SyncedLyrics({
   audioRef,
   compact = false,
   lyricLines,
+  enabled = true,
 }: {
   audioRef: RefObject<HTMLMediaElement | null>
   compact?: boolean
   lyricLines?: LyricLine[] | null
+  enabled?: boolean
 }) {
   const lines = (lyricLines && lyricLines.length > 0)
     ? lyricLines
     : LYRIC_LINES.length > 0 ? LYRIC_LINES : [{ time: 0, text: "I'll rise above the fear", raw: '' }]
-  const currentTime = useSyncedLyricTime(audioRef)
+  const currentTime = useSyncedLyricTime(audioRef, enabled)
   const activeIndex = findActiveLyricIndex(lines, currentTime)
   const viewportHeight = compact ? 336 : 364
   const centerOffset = viewportHeight / 2 - LYRIC_ROW_HEIGHT / 2
@@ -614,15 +597,14 @@ function MultiUserTouchFrames({ targets, positions, active }: {
         const touch = PLAYER_TOUCHES[player]
         return (
           <motion.div
-            key={`${player}-${id}`}
-            initial={{ opacity: 0, scale: 0.88 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.88 }}
-            transition={{ duration: 0.14 }}
+            key={player}
+            initial={false}
+            animate={{ x: target.left - pad, y: target.top - pad }}
+            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
             style={{
               position: 'absolute',
-              left: target.left - pad,
-              top: target.top - pad,
+              left: 0,
+              top: 0,
               width: target.width + pad * 2,
               height: target.height + pad * 2,
               borderRadius: target.radius === 999 ? 999 : target.radius + pad,
@@ -710,7 +692,7 @@ function BottomBar({ showTime, isPlaying, isListOpen, onListClick }: {
         <div style={{ display: 'flex', alignItems: 'center', width: 371 }}>
           <div style={{ display: 'flex', gap: 33, alignItems: 'center' }}>
             <motion.button
-
+              whileTap={onListClick ? { scale: 0.92 } : undefined}
               onClick={onListClick}
               style={{
                 width: isListOpen ? 70 : 45,
@@ -789,7 +771,7 @@ function SingMemojiGroupPill({ m0, m1, m2, activePlayer, onClick }: {
 
   return (
     <motion.div
-
+      whileTap={{ scale: onClick ? 0.94 : 1 }}
       onClick={onClick}
       style={{
         display: 'flex',
@@ -924,7 +906,7 @@ function EmojiArcPicker({ onSelect, left = 918, top = 787, player = 1 }: { onSel
     <motion.div
       key={emoji}
       whileHover={{ scale: 1.08 }}
-
+      whileTap={{ scale: 0.9 }}
       onClick={() => onSelect(emoji)}
       style={{
         position: 'absolute',
@@ -1002,7 +984,7 @@ function EmojiArcPicker({ onSelect, left = 918, top = 787, player = 1 }: { onSel
 function SearchBar({ onClick }: { onClick?: () => void }) {
   return (
     <motion.div
-
+      whileTap={{ scale: 0.96 }}
       onClick={onClick}
       style={{
         position: 'absolute',
@@ -1088,8 +1070,11 @@ function SingModeTopBar({
         width: 385,
         height: 78,
         borderRadius: 991,
-        border: '1.983px solid #fff',
-        background: 'linear-gradient(158.77deg, rgba(255,255,255,0.25) 19.848%, rgba(235,235,235,0.184) 4.204%, rgba(224,224,224,0.144) 13.88%, rgba(212,212,212,0.106) 27.982%, rgba(207,207,207,0.088) 37.795%, rgba(202,202,202,0.072) 44.382%, rgba(200,200,200,0.063) 50.536%, rgba(196,196,196,0.05) 60.215%)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        background: 'rgba(255,255,255,0.10)',
+        backdropFilter: 'blur(50px)',
+        WebkitBackdropFilter: 'blur(50px)',
+        boxShadow: '0px 40px 30px rgba(0,0,0,0.05), inset 0px 1px 1px rgba(255,255,255,0.60)',
         display: 'flex',
         alignItems: 'center',
         padding: 15.862,
@@ -1099,7 +1084,7 @@ function SingModeTopBar({
       }}
     >
       <motion.div
-
+        whileTap={{ scale: 0.95 }}
         onMouseEnter={() => onFocusMode('sing')}
         onClick={onStaySing}
         style={itemStyle('sing')}
@@ -1115,7 +1100,7 @@ function SingModeTopBar({
         <span style={textStyle('sing')}>Sing now</span>
       </motion.div>
       <motion.div
-
+        whileTap={{ scale: 0.95 }}
         onMouseEnter={() => onFocusMode('browser')}
         onClick={onBrowser}
         style={itemStyle('browser')}
@@ -1474,7 +1459,7 @@ function GuideScreen({ onContinue }: { onContinue: () => void }) {
       </div>
 
       <motion.button
-
+        whileTap={{ scale: 0.94 }}
         onClick={() => setConfirmed([true, true, true])}
         style={{
           position: 'absolute',
@@ -1587,7 +1572,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
 
       {/* Back button */}
       <motion.button
-
+        whileTap={{ scale: 0.88 }}
         onClick={onBack}
         style={{
           position: 'absolute',
@@ -1657,7 +1642,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
           {(['ABC','abc','.,#'] as const).map(tab => (
             <motion.button
               key={tab}
-
+              whileTap={{ scale: 0.94 }}
               onClick={() => setActiveKbTab(tab)}
               style={{
                 padding: '8px 20px',
@@ -1683,7 +1668,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
               {row.map(ch => (
                 <motion.button
                   key={ch}
-
+                  whileTap={{ scale: 0.88 }}
                   style={{
                     width: 54, height: 54,
                     borderRadius: 10,
@@ -1702,7 +1687,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
           ))}
           {/* Space bar */}
           <motion.button
-
+            whileTap={{ scale: 0.96 }}
             style={{
               width: '100%', height: 54,
               borderRadius: 10,
@@ -1731,7 +1716,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
         <motion.div
           key={i}
           whileHover={{ scale: 1.05 }}
-
+          whileTap={{ scale: 0.96 }}
           onClick={onSingNow}
           style={{
             position: 'absolute',
@@ -1786,7 +1771,7 @@ function SearchScreen({ onBack, onSingNow }: { onBack: () => void; onSingNow: ()
           <motion.div
             key={i}
             whileHover={{ background: 'rgba(255,255,255,0.06)' }}
-
+            whileTap={{ scale: 0.98 }}
             onClick={onSingNow}
             style={{
               display: 'flex', alignItems: 'center', gap: 20,
@@ -1897,7 +1882,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
           style={{ width: 2, height: 26, background: '#fff', borderRadius: 1 }}
         />
         <motion.div
-
+          whileTap={{ scale: 0.92 }}
           style={{
             position: 'absolute',
             left: 375,
@@ -1924,11 +1909,12 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
         top: 245,
         width: 457,
         height: 210,
-        background: 'rgba(255,255,255,0.08)',
+        background: 'rgba(255,255,255,0.10)',
         borderRadius: 36,
-        backdropFilter: 'blur(35px)',
-        border: '1px solid rgba(255,255,255,0.14)',
-        boxShadow: 'inset 0px 0.659px 0px rgba(255,255,255,0.50), 0px 0.33px 7.913px -0.33px rgba(0,0,0,0.18)',
+        backdropFilter: 'blur(50px)',
+        WebkitBackdropFilter: 'blur(50px)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0px 40px 30px rgba(0,0,0,0.05), inset 0px 1px 1px rgba(255,255,255,0.60)',
         display: 'flex', alignItems: 'center',
         padding: '0 18px', gap: 16,
         overflow: 'hidden',
@@ -1938,7 +1924,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
         {carouselCards.map((card, i) => (
           <div key={i} style={{ position: 'relative', flexShrink: 0 }}>
             <motion.div
-              whileHover={{ scale: 1.06 }}
+              whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }}
               onClick={onSingNow}
               style={{
                 width: 110, height: 110,
@@ -1995,9 +1981,10 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
         borderRadius: 20,
         padding: '18px 12px',
         display: 'flex', flexDirection: 'column', gap: 8,
-        backdropFilter: 'blur(34px)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        boxShadow: 'inset 0px 0.5px 0px rgba(255,255,255,0.25)',
+        backdropFilter: 'blur(50px)',
+        WebkitBackdropFilter: 'blur(50px)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0px 40px 30px rgba(0,0,0,0.05), inset 0px 1px 1px rgba(255,255,255,0.60)',
         zIndex: 1,
         boxSizing: 'border-box',
         pointerEvents: 'auto',
@@ -2007,7 +1994,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
             {row.map(ch => (
               <motion.button
                 key={ch}
-
+                whileTap={{ scale: 0.85 }}
                 style={{
                   width: ri === 0 ? 43 : ri === 1 ? 46 : 54,
                   height: 46,
@@ -2028,7 +2015,7 @@ function SingSidebar({ onClose, onSingNow }: { onClose: () => void; onSingNow: (
         {/* Space bar */}
         <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
           <motion.button
-
+            whileTap={{ scale: 0.96 }}
             style={{
               width: 200, height: 46,
               borderRadius: 8,
@@ -2101,7 +2088,7 @@ function MusicCardActionButton({
   const isAdd = mode === 'add'
   return (
     <motion.button
-
+      whileTap={{ scale: 0.94 }}
       onClick={(e) => {
         e.stopPropagation()
         onClick()
@@ -2328,7 +2315,7 @@ function BrowserScreen({ onSingNow, onBack, onSearch, songs, artworks }: {
 
       {/* Back button */}
       <motion.button
-
+        whileTap={{ scale: 0.88 }}
         onClick={onBack}
         style={{
           position: 'absolute',
@@ -2427,7 +2414,7 @@ function BrowserScreen({ onSingNow, onBack, onSearch, songs, artworks }: {
         <motion.div
           key={i}
           whileHover={{ scale: 1.04 }}
-
+          whileTap={{ scale: 0.97 }}
           onClick={() => {
             setSelectedCard(i)
             setCardActionMode('add')
@@ -2453,7 +2440,7 @@ function BrowserScreen({ onSingNow, onBack, onSearch, songs, artworks }: {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 0.88, scale: 1 }}
           whileHover={{ scale: 1.04, opacity: 1 }}
-
+          whileTap={{ scale: 0.97 }}
           onClick={() => {
             setSelectedCard(albumIndex)
             setCardActionMode('add')
@@ -2776,21 +2763,22 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
         height: 654,
         borderRadius: 36.207,
         overflow: 'hidden',
-        boxShadow: '0px 0.33px 7.913px -0.33px rgba(0,0,0,0.18)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0px 40px 30px rgba(0,0,0,0.05), inset 0px 1px 1px rgba(255,255,255,0.60)',
         zIndex: 12,
       }}
     >
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(133.356deg, rgba(163,163,163,0.222) 3.544%, rgba(114,114,114,0.252) 95.146%)',
-        backdropFilter: 'blur(35.35px)',
+        background: 'rgba(255,255,255,0.10)',
+        backdropFilter: 'blur(50px)',
+        WebkitBackdropFilter: 'blur(50px)',
       }} />
       <div style={{
         position: 'absolute',
         inset: 0,
         borderRadius: 36.207,
-        boxShadow: 'inset 0px 0.659px 0px rgba(255,255,255,0.50), inset 0.659px 0px 0px rgba(255,255,255,0.20), inset -0.659px 0px 0px rgba(255,255,255,0.20), inset 0px -0.659px 0px rgba(255,255,255,0.10)',
         pointerEvents: 'none',
       }} />
 
@@ -2805,7 +2793,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
         zIndex: 2,
       }}>
         <motion.button
-
+          whileTap={{ scale: 0.92 }}
           onClick={onSearch}
           style={{
             width: 51,
@@ -2886,7 +2874,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
             <motion.div
               key={row.title}
               whileHover={{ background: 'rgba(255,255,255,0.06)' }}
-
+              whileTap={{ scale: 0.985 }}
               onClick={onSongClick}
               style={{
                 height: 82,
@@ -2944,7 +2932,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
                 marginLeft: 'auto',
               }}>
                 <motion.button
-
+                  whileTap={{ scale: 0.9 }}
                   onClick={(e) => {
                     e.stopPropagation()
                     onMoveSong(index, 'up')
@@ -2962,7 +2950,7 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
                   {SF.listHead}
                 </motion.button>
                 <motion.button
-
+                  whileTap={{ scale: 0.9 }}
                   onClick={(e) => {
                     e.stopPropagation()
                     onMoveSong(index, 'down')
@@ -3001,44 +2989,61 @@ function CurrentListPanel({ rows, onSearch, onSongClick, onMoveSong }: {
 }
 
 /* ─── Singing Screen ─────────────────────────────────────── */
-function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricLines, previewUrl, videoSrc, songTitle, songArtist, artworkUrl }: {
+function SingingScreen({
+  onFinish,
+  onBack,
+  showGuidanceInitially = false,
+  lyricLines,
+  previewUrl,
+  songTitle,
+  songArtist,
+  artworkUrl,
+  currentListRows,
+  setCurrentListRows,
+}: {
   onFinish: () => void
   onBack: () => void
   showGuidanceInitially?: boolean
   lyricLines?: LyricLine[] | null
   previewUrl?: string | null
-  videoSrc?: string | null
   songTitle?: string
   songArtist?: string
   artworkUrl?: string | null
+  currentListRows: CurrentListRow[]
+  setCurrentListRows: React.Dispatch<React.SetStateAction<CurrentListRow[]>>
 }) {
-  const audioRef  = useRef<HTMLMediaElement | null>(null)
+  const audioRef = useRef<HTMLVideoElement | null>(null)
   const finishRef = useRef(onFinish)
   finishRef.current = onFinish
-  const waitingForGuideRef = useRef(showGuidanceInitially) // true = hold audio until guide dismissed
   const [showSidebar, setShowSidebar] = useState(false)
   const [sidebarAnchorPlayer, setSidebarAnchorPlayer] = useState<PlayerId | null>(null)
   const [showList, setShowList] = useState(false)
-  const [currentListRows, setCurrentListRows] = useState<CurrentListRow[]>([
-    { title: 'Name 01', artist: 'Singer', thumb: listRect4, overlay: listAlbumArt, active: true },
-    { title: 'Name 02', artist: 'Band', thumb: listRect5 },
-    { title: 'Name 03', artist: 'Solo Artist', thumb: listRect6 },
-    { title: 'Name 04', artist: 'Composer', thumb: listRect7 },
-  ])
   const [showTopBar, setShowTopBar] = useState(false)
   const [topBarFocus, setTopBarFocus] = useState<'sing' | 'browser'>('sing')
   const [browserLyricsMode, setBrowserLyricsMode] = useState(false)
-  const [showGuidance, setShowGuidance] = useState(showGuidanceInitially)
+  const [showGuidance, setShowGuidance] = useState(true) // Always start with guidance/tutorial first when entering SingingScreen
+  const [countdown, setCountdown] = useState<number | null>(null)
+  const [songStarted, setSongStarted] = useState(false)
 
-  // Play audio when guide is dismissed (autoPlay was disabled while guide was showing)
+  const startCountdown = () => {
+    setCountdown(3)
+  }
+
   useEffect(() => {
-    if (!waitingForGuideRef.current) return
-    if (!showGuidance) {
-      waitingForGuideRef.current = false
+    if (countdown === null) return
+    if (countdown === 0) {
+      setCountdown(null)
+      setSongStarted(true)
       audioRef.current?.play().catch(() => {})
+      return
     }
-  }, [showGuidance])
+    const timer = setTimeout(() => {
+      setCountdown(c => (c !== null ? c - 1 : null))
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [countdown])
 
+  const videoPath = getSongVideoPath(songTitle)
   const [emojiPickerPlayer, setEmojiPickerPlayer] = useState<PlayerId | null>(null)
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; x: number; fontSize: number; rotate: number; blur: number; opacity: number; delay: number }[]>([])
   const singingTargets: TouchTarget[] = [
@@ -3303,36 +3308,28 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
       }}
       style={{ position: 'absolute', inset: 0 }}
     >
-      {/* Audio: use video file (with its audio track) if available, else fall back to iTunes 30s preview.
-          autoPlay is disabled when guide is showing initially — we play manually when guide is dismissed. */}
-      {videoSrc
-        ? <video
-            ref={el => { audioRef.current = el }}
-            src={videoSrc} autoPlay={!showGuidanceInitially} loop playsInline
-            aria-hidden="true" preload="auto"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
-          />
-        : <audio
-            ref={el => { audioRef.current = el }}
-            src={previewUrl ?? undefined} aria-hidden="true" preload="auto"
-            autoPlay={!showGuidanceInitially} loop style={{ display: 'none' }}
-          />
-      }
-
-      {/* Dark overlay on top of video so UI stays readable */}
-      {videoSrc && (
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.48)', zIndex: 1, pointerEvents: 'none' }} />
-      )}
-
-      {/* Background glows (shown only when no video) */}
-      {!videoSrc && <>
-      <div style={{ position: 'absolute', left: -157, top: 1058, width: 2210, height: 715, overflow: 'hidden', transform: 'rotate(180deg)', zIndex: 0 }}>
-        <img src={sEllipse161} alt="" style={{ position: 'absolute', inset: '-27.23% -8.81%', width: '100%', height: '100%', display: 'block' }} />
-      </div>
-      <div style={{ position: 'absolute', left: -157, top: -207, width: 2210, height: 207, overflow: 'hidden', transform: 'rotate(180deg)', zIndex: 0 }}>
-        <img src={sEllipse160} alt="" style={{ position: 'absolute', inset: '-94.06% -8.81%', width: '100%', height: '100%', display: 'block' }} />
-      </div>
-      </>}
+      {/* Background Video */}
+      <video
+        ref={audioRef}
+        src={videoPath}
+        loop
+        playsInline
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0,
+        }}
+      />
+      {/* Dark overlay for readability */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        zIndex: 1,
+      }} />
 
       {/* Next Song badges at top center */}
       {/* Small (Variant2) - behind, top: 73 */}
@@ -3352,12 +3349,11 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11.763 }}>
           <div style={{ width: 40, height: 40, borderRadius: 6.274, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
-            <img src={sRect4} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <img src={sRect6} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={currentListRows[1]?.overlay ?? currentListRows[1]?.thumb ?? sRect6} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
-            <p style={{ fontFamily: sfPro, fontSize: 17.253, fontWeight: 700, color: '#fff', lineHeight: '21.958px', letterSpacing: '-0.204px', margin: 0 }}>{songTitle ?? 'Song'}</p>
-            <p style={{ fontFamily: sfPro, fontSize: 13.332, fontWeight: 590, color: '#fff', lineHeight: '17.253px', letterSpacing: '-0.337px', opacity: 0.60, margin: 0 }}>{songArtist ?? ''}</p>
+            <p style={{ fontFamily: sfPro, fontSize: 17.253, fontWeight: 700, color: '#fff', lineHeight: '21.958px', letterSpacing: '-0.204px', margin: 0 }}>{currentListRows[1]?.title ?? 'Song'}</p>
+            <p style={{ fontFamily: sfPro, fontSize: 13.332, fontWeight: 590, color: '#fff', lineHeight: '17.253px', letterSpacing: '-0.337px', opacity: 0.60, margin: 0 }}>{currentListRows[1]?.artist ?? ''}</p>
           </div>
         </div>
       </div>
@@ -3378,12 +3374,11 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16.033 }}>
           <div style={{ width: 54, height: 54, borderRadius: 8.551, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
-            <img src={sRect4} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <img src={sRect5} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={currentListRows[0]?.overlay ?? currentListRows[0]?.thumb ?? sRect5} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
-            <p style={{ fontFamily: sfPro, fontSize: 23.515, fontWeight: 700, color: '#fff', lineHeight: '29.929px', letterSpacing: '-0.278px', margin: 0 }}>{songTitle ?? 'Song'}</p>
-            <p style={{ fontFamily: sfPro, fontSize: 18.171, fontWeight: 590, color: '#fff', lineHeight: '23.515px', letterSpacing: '-0.46px', opacity: 0.60, margin: 0 }}>{songArtist ?? ''}</p>
+            <p style={{ fontFamily: sfPro, fontSize: 23.515, fontWeight: 700, color: '#fff', lineHeight: '29.929px', letterSpacing: '-0.278px', margin: 0 }}>{currentListRows[0]?.title ?? 'Song'}</p>
+            <p style={{ fontFamily: sfPro, fontSize: 18.171, fontWeight: 590, color: '#fff', lineHeight: '23.515px', letterSpacing: '-0.46px', opacity: 0.60, margin: 0 }}>{currentListRows[0]?.artist ?? ''}</p>
           </div>
         </div>
       </div>
@@ -3430,7 +3425,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
             {[bRect5, bMusicCard1, bMusicCard2, bMusicCard3, bMusicCard4, bMusicCard5].map((card, i) => (
               <motion.div
                 key={card}
-
+                whileTap={{ scale: 0.96 }}
                 style={{
                   width: 240,
                   height: 240,
@@ -3464,7 +3459,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
             width: 780,
             zIndex: 5,
           }}>
-            <SyncedLyrics audioRef={audioRef} compact lyricLines={lyricLines} />
+            <SyncedLyrics audioRef={audioRef} compact lyricLines={lyricLines} enabled={songStarted} />
           </div>
         </>
       ) : (
@@ -3474,9 +3469,12 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
           top: 'calc(50% - 22px)',
           transform: 'translate(-50%, -50%)',
           width: 1460, height: 676,
-          background: 'linear-gradient(180deg, rgba(234,234,234,0.10) 0%, rgba(154,154,154,0.10) 100%)',
+          background: 'rgba(255,255,255,0.10)',
+          backdropFilter: 'blur(50px)',
+          WebkitBackdropFilter: 'blur(50px)',
           borderRadius: 100,
-          boxShadow: '0px 0px 14.9px 0px rgba(0,0,0,0.25)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0px 40px 30px rgba(0,0,0,0.05), inset 0px 1px 1px rgba(255,255,255,0.60)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 10,
           zIndex: 5,
@@ -3494,7 +3492,7 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
             </div>
             {/* Right: lyrics */}
             <div style={{ width: 574 }}>
-              <SyncedLyrics audioRef={audioRef} lyricLines={lyricLines} />
+              <SyncedLyrics audioRef={audioRef} lyricLines={lyricLines} enabled={songStarted} />
             </div>
           </div>
         </div>
@@ -3608,8 +3606,49 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
         {showGuidance && (
           <GuideScreen
             key="singing-guidance"
-            onContinue={() => setShowGuidance(false)}
+            onContinue={() => {
+              setShowGuidance(false)
+              startCountdown()
+            }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ── Countdown Overlay ── */}
+      <AnimatePresence>
+        {countdown !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 90,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <motion.div
+              key={countdown}
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1.1, opacity: 1 }}
+              exit={{ scale: 1.4, opacity: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+              style={{
+                fontFamily: sfPro,
+                fontSize: 180,
+                fontWeight: 800,
+                color: '#fff',
+                textShadow: '0 0 40px rgba(255,255,255,0.4)',
+              }}
+            >
+              {countdown}
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
@@ -3617,9 +3656,11 @@ function SingingScreen({ onFinish, onBack, showGuidanceInitially = false, lyricL
 }
 
 /* ─── Finished Screen ────────────────────────────────────── */
-function FinishedScreen({ onTryAgain, onNext }: {
+function FinishedScreen({ onTryAgain, onNext, nextSongFront, nextSongBehind }: {
   onTryAgain: () => void
   onNext: () => void
+  nextSongFront?: { title: string; artist: string; thumb?: string; overlay?: string }
+  nextSongBehind?: { title: string; artist: string; thumb?: string; overlay?: string }
 }) {
   const finishedTargets: TouchTarget[] = [
     { id: 'try-again', left: 686, top: 623, width: 169, height: 53, radius: 55 },
@@ -3676,12 +3717,11 @@ function FinishedScreen({ onTryAgain, onNext }: {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11.763 }}>
             <div style={{ width: 40, height: 40, borderRadius: 6.274, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
-              <img src={fRect4} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-              <img src={fRect6} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={nextSongBehind?.overlay ?? nextSongBehind?.thumb ?? fRect6} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div>
-              <p style={{ fontFamily: sfPro, fontSize: 17.253, fontWeight: 700, color: '#fff', lineHeight: '21.958px', margin: 0 }}>Name 01</p>
-              <p style={{ fontFamily: sfPro, fontSize: 13.332, fontWeight: 590, color: '#fff', lineHeight: '17.253px', opacity: 0.60, margin: 0 }}>Singer</p>
+              <p style={{ fontFamily: sfPro, fontSize: 17.253, fontWeight: 700, color: '#fff', lineHeight: '21.958px', margin: 0 }}>{nextSongBehind?.title ?? 'Song'}</p>
+              <p style={{ fontFamily: sfPro, fontSize: 13.332, fontWeight: 590, color: '#fff', lineHeight: '17.253px', opacity: 0.60, margin: 0 }}>{nextSongBehind?.artist ?? ''}</p>
             </div>
           </div>
         </div>
@@ -3693,12 +3733,11 @@ function FinishedScreen({ onTryAgain, onNext }: {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16.033 }}>
             <div style={{ width: 54, height: 54, borderRadius: 8.551, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
-              <img src={fRect4} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-              <img src={fRect5} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={nextSongFront?.overlay ?? nextSongFront?.thumb ?? fRect5} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div>
-              <p style={{ fontFamily: sfPro, fontSize: 23.515, fontWeight: 700, color: '#fff', margin: 0 }}>Name 01</p>
-              <p style={{ fontFamily: sfPro, fontSize: 18.171, fontWeight: 590, color: '#fff', opacity: 0.60, margin: 0 }}>Singer</p>
+              <p style={{ fontFamily: sfPro, fontSize: 23.515, fontWeight: 700, color: '#fff', margin: 0 }}>{nextSongFront?.title ?? 'Song'}</p>
+              <p style={{ fontFamily: sfPro, fontSize: 18.171, fontWeight: 590, color: '#fff', opacity: 0.60, margin: 0 }}>{nextSongFront?.artist ?? ''}</p>
             </div>
           </div>
         </div>
@@ -3714,9 +3753,12 @@ function FinishedScreen({ onTryAgain, onNext }: {
           left: 'calc(50% - 653px)',
           top: 'calc(50% - 359px)',
           width: 1307, height: 655,
-          background: 'linear-gradient(180deg, rgba(234,234,234,0.05) 0%, rgba(154,154,154,0.10) 100%)',
+          background: 'rgba(255,255,255,0.10)',
+          backdropFilter: 'blur(50px)',
+          WebkitBackdropFilter: 'blur(50px)',
           borderRadius: 100,
-          boxShadow: '0px 0px 43px 0px rgba(0,0,0,0.25)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0px 40px 30px rgba(0,0,0,0.05), inset 0px 1px 1px rgba(255,255,255,0.60)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 10,
           zIndex: 5,
@@ -3750,7 +3792,7 @@ function FinishedScreen({ onTryAgain, onNext }: {
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: 20, height: 53, alignItems: 'flex-start', justifyContent: 'center', width: 565 }}>
             <motion.button
-
+              whileTap={{ scale: 0.95 }}
               onClick={onTryAgain}
               style={{
                 flex: '1 0 0',
@@ -3767,7 +3809,7 @@ function FinishedScreen({ onTryAgain, onNext }: {
               <span style={{ fontFamily: sfPro, fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.9)', lineHeight: '28px', letterSpacing: '-0.26px', whiteSpace: 'nowrap' }}>Try again</span>
             </motion.button>
             <motion.button
-
+              whileTap={{ scale: 0.95 }}
               style={{
                 height: 53,
                 backdropFilter: 'blur(67.955px)',
@@ -3783,7 +3825,7 @@ function FinishedScreen({ onTryAgain, onNext }: {
               <span style={{ fontFamily: sfPro, fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.9)', lineHeight: '28px', letterSpacing: '-0.26px', whiteSpace: 'nowrap' }}>Save the memory</span>
             </motion.button>
             <motion.button
-
+              whileTap={{ scale: 0.95 }}
               onClick={onNext}
               style={{
                 height: 53,
@@ -3835,6 +3877,13 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
   const [step, setStep] = useState<SingStep>(initialStep === 'browser-guide' ? 'guide' : startsWithSingingGuidance ? 'singing' : 'browser')
   const [scale, setScale] = useState(1)
   const [selectedSongIdx, setSelectedSongIdx] = useState(0)
+
+  const [currentListRows, setCurrentListRows] = useState<CurrentListRow[]>([
+    { title: 'Name 01', artist: 'Singer', thumb: listRect4, overlay: listAlbumArt, active: true },
+    { title: 'Name 02', artist: 'Band', thumb: listRect5 },
+    { title: 'Name 03', artist: 'Solo Artist', thumb: listRect6 },
+    { title: 'Name 04', artist: 'Composer', thumb: listRect7 },
+  ])
 
   // If a song was passed in from PartyScreen, use it directly; otherwise use SONG_LIST selection
   const activeSong = song ?? SONG_LIST[selectedSongIdx]
@@ -3905,10 +3954,11 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
             showGuidanceInitially={startsWithSingingGuidance}
             lyricLines={lyricLines}
             previewUrl={currentTrack?.previewUrl}
-            videoSrc={VIDEO_MAP[activeSong.title] ?? null}
             songTitle={activeSong.title}
             songArtist={activeSong.artist}
             artworkUrl={currentTrack?.artwork}
+            currentListRows={currentListRows}
+            setCurrentListRows={setCurrentListRows}
           />
         )}
         {step === 'finished' && (
@@ -3916,6 +3966,8 @@ export default function SingHomeScreen({ members, groupName, onBack, initialStep
             key="finished"
             onTryAgain={() => setStep('singing')}
             onNext={() => setStep('browser')}
+            nextSongFront={currentListRows[0]}
+            nextSongBehind={currentListRows[1]}
           />
         )}
       </AnimatePresence>

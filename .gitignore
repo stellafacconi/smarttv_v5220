@@ -4,3 +4,6 @@ dist/
 *.local
 
 package-lock.json
+
+CANZONI/
+public/CANZONI/
