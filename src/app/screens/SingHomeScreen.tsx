@@ -314,25 +314,78 @@ function findActiveLyricIndex(lines: LyricLine[], currentTime: number) {
 
 function useSyncedLyricTime(audioRef: RefObject<HTMLMediaElement | null>, enabled = true) {
   const [currentTime, setCurrentTime] = useState(0)
-  const startRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!enabled) return
+
+    // Primary: sync from media element via timeupdate (fires every ~250ms) +
+    //          RAF for smooth interpolation between timeupdate events
     let raf = 0
-    const tick = (now: number) => {
-      const audio = audioRef.current
-      const hasRealAudio = audio && audio.readyState > 0 && Number.isFinite(audio.duration) && audio.duration > 0
-      if (hasRealAudio) {
-        setCurrentTime(audio.currentTime)
-      } else {
-        if (startRef.current === null) startRef.current = now
-        const elapsed = ((now - startRef.current) / 1000) % Math.max(LYRIC_DURATION + 4, 1)
-        setCurrentTime(elapsed)
+    let lastMediaTime = -1
+    let lastRafNow = 0
+
+    const sync = () => {
+      const media = audioRef.current
+      if (media && media.readyState >= 1 && Number.isFinite(media.duration)) {
+        setCurrentTime(media.currentTime)
+        lastMediaTime = media.currentTime
+        lastRafNow = performance.now()
       }
-      raf = window.requestAnimationFrame(tick)
     }
-    raf = window.requestAnimationFrame(tick)
-    return () => window.cancelAnimationFrame(raf)
+
+    // timeupdate gives us real positions every ~250ms
+    const onTimeUpdate = () => sync()
+    const onPlay       = () => sync()
+    const onSeeked     = () => sync()
+
+    // Also poll via RAF so lyrics animate smoothly between timeupdate events
+    const tick = () => {
+      const media = audioRef.current
+      if (media && !media.paused && lastMediaTime >= 0) {
+        const elapsed = (performance.now() - lastRafNow) / 1000
+        setCurrentTime(lastMediaTime + elapsed)
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+
+    // Attach events as soon as we can — or wait for the element to mount
+    const attach = () => {
+      const media = audioRef.current
+      if (!media) return false
+      media.addEventListener('timeupdate', onTimeUpdate)
+      media.addEventListener('play',       onPlay)
+      media.addEventListener('seeked',     onSeeked)
+      sync() // grab current time immediately
+      return true
+    }
+
+    if (!attach()) {
+      // Element not yet mounted — retry a few times
+      const tries = [50, 150, 300, 600].map(ms =>
+        setTimeout(() => attach(), ms)
+      )
+      return () => {
+        tries.forEach(clearTimeout)
+        cancelAnimationFrame(raf)
+        const media = audioRef.current
+        if (media) {
+          media.removeEventListener('timeupdate', onTimeUpdate)
+          media.removeEventListener('play',       onPlay)
+          media.removeEventListener('seeked',     onSeeked)
+        }
+      }
+    }
+
+    return () => {
+      cancelAnimationFrame(raf)
+      const media = audioRef.current
+      if (media) {
+        media.removeEventListener('timeupdate', onTimeUpdate)
+        media.removeEventListener('play',       onPlay)
+        media.removeEventListener('seeked',     onSeeked)
+      }
+    }
   }, [audioRef, enabled])
 
   return currentTime
