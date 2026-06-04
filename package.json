@@ -10,7 +10,6 @@
   "dependencies": {
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
-    "@esbuild/darwin-arm64": "^0.28.0",
     "@mui/icons-material": "7.3.5",
     "@mui/material": "7.3.5",
     "@popperjs/core": "2.11.8",
@@ -92,6 +91,7 @@
     }
   },
   "optionalDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.61.0"
+    "@rollup/rollup-darwin-arm64": "^4.61.0",
+    "@esbuild/darwin-arm64": "^0.28.0"
   }
 }
