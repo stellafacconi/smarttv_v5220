@@ -206,7 +206,9 @@ export default function HomeScreen({
   }
 
   /* ── Video ref ── */
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef      = useRef<HTMLVideoElement>(null)
+  const audioUnlocked = useRef(false)          // true after first user gesture
+  const volumeRef     = useRef(40)             // mirrors volume state, safe in closures
 
   /* ── Lock hold — RAF-based progress ── */
   const lockHoldRef = useRef<{
@@ -477,31 +479,56 @@ export default function HomeScreen({
     else videoRef.current.play().catch(() => {})
   }, [anyPanelOpen])
 
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.volume = volume / 100
-  }, [volume])
+  /* keep volumeRef in sync so RAF closures always see the latest value */
+  useEffect(() => { volumeRef.current = volume }, [volume])
 
-  /* ── Audio fade-in when carousel changes ── */
+  /* ── Unlock audio on first user gesture (browser autoplay policy) ── */
   useEffect(() => {
+    const unlock = () => {
+      if (audioUnlocked.current) return
+      audioUnlocked.current = true
+      const vid = videoRef.current
+      if (!vid) return
+      vid.muted = false
+      vid.volume = 0
+      const target = volumeRef.current / 100
+      const FADE_IN_MS = 1200
+      const t0 = performance.now()
+      let raf: number
+      const step = (now: number) => {
+        const t = Math.min((now - t0) / FADE_IN_MS, 1)
+        if (vid.isConnected) vid.volume = t * target
+        if (t < 1) raf = requestAnimationFrame(step)
+      }
+      raf = requestAnimationFrame(step)
+    }
+    window.addEventListener('keydown', unlock, { once: true })
+    window.addEventListener('click',   unlock, { once: true })
+    return () => {
+      window.removeEventListener('keydown', unlock)
+      window.removeEventListener('click',   unlock)
+    }
+  }, [])
+
+  /* ── Audio fade-in/out when carousel changes (only after unlock) ── */
+  useEffect(() => {
+    if (!audioUnlocked.current) return
     const vid = videoRef.current
     if (!vid) return
-    const target = volume / 100
+    vid.muted  = false
     vid.volume = 0
-
+    const target = volumeRef.current / 100
     let rafId: number
     const FADE_IN_MS = 1200
     const start = performance.now()
-
     const fadeIn = (now: number) => {
       const t = Math.min((now - start) / FADE_IN_MS, 1)
       if (videoRef.current === vid) vid.volume = t * target
       if (t < 1) rafId = requestAnimationFrame(fadeIn)
     }
     rafId = requestAnimationFrame(fadeIn)
-
     return () => {
       cancelAnimationFrame(rafId)
-      // fade out the departing video
       const departing = vid
       const fromVol   = departing.volume
       const FADE_OUT_MS = 450
@@ -513,7 +540,6 @@ export default function HomeScreen({
         if (p < 1) outId = requestAnimationFrame(fadeOut)
       }
       outId = requestAnimationFrame(fadeOut)
-      // stop the RAF after fade-out completes (cleanup reference)
       setTimeout(() => cancelAnimationFrame(outId), FADE_OUT_MS + 100)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -537,7 +563,7 @@ export default function HomeScreen({
         <motion.video
           key={HERO_SLIDES[carousel].src}
           ref={videoRef}
-          autoPlay loop playsInline
+          autoPlay loop muted playsInline
           initial={{ opacity: 0, scale: 1.015 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.015 }}
